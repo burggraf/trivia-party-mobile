@@ -29,7 +29,7 @@ export default function PartySetupScreen() {
         PartyService.getPartyRounds(partyId),
       ]);
 
-      const currentParty = partyData.find(p => p.id === partyId);
+      const currentParty = partyData.find((p) => p.id === partyId);
       setParty(currentParty || null);
       setRounds(roundsData);
     } catch (error) {
@@ -50,7 +50,7 @@ export default function PartySetupScreen() {
         round_number: rounds.length + 1,
         ...roundData,
       });
-      
+
       setRounds([...rounds, newRound]);
       setShowAddRoundModal(false);
     } catch (error) {
@@ -72,20 +72,23 @@ export default function PartySetupScreen() {
     }
   };
 
-  const renderRoundCard = ({ item, index }: { item: Round; index: number }) => (
+  const renderRoundCard = ({ item }: { item: Round }) => (
     <Card style={styles.roundCard}>
       <Card.Content>
         <View style={styles.roundHeader}>
-          <Text variant="titleMedium">Round {item.round_number}: {item.name}</Text>
+          <Text variant="titleMedium">
+            Round {item.round_number}: {item.name}
+          </Text>
           <Chip mode="outlined" style={getStatusChipStyle(item.status)}>
             {item.status}
           </Chip>
         </View>
-        
+
         <View style={styles.roundDetails}>
           <Text variant="bodyMedium">Questions: {item.question_count}</Text>
           <Text variant="bodyMedium">
-            Categories: {item.categories.length > 0 ? item.categories.join(', ') : 'All'}
+            Categories:{' '}
+            {item.categories.length > 0 ? item.categories.join(', ') : 'All'}
           </Text>
           {item.difficulty && (
             <Text variant="bodyMedium">Difficulty: {item.difficulty}</Text>
@@ -163,7 +166,8 @@ export default function PartySetupScreen() {
                   No rounds added yet
                 </Text>
                 <Text variant="bodyMedium" style={styles.emptySubtitle}>
-                  Add rounds to organize your trivia questions by topic or difficulty
+                  Add rounds to organize your trivia questions by topic or
+                  difficulty
                 </Text>
               </Card.Content>
             </Card>

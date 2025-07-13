@@ -16,7 +16,9 @@ const finalSupabaseUrl = supabaseUrl || 'https://placeholder.supabase.co';
 const finalSupabaseAnonKey = supabaseAnonKey || 'placeholder-key';
 
 if (isDevelopment) {
-  console.warn('⚠️  Using placeholder Supabase configuration for testing. Set EXPO_PUBLIC_SUPABASE_URL and EXPO_PUBLIC_SUPABASE_ANON_KEY environment variables for full functionality.');
+  console.warn(
+    '⚠️  Using placeholder Supabase configuration for testing. Set EXPO_PUBLIC_SUPABASE_URL and EXPO_PUBLIC_SUPABASE_ANON_KEY environment variables for full functionality.'
+  );
 }
 
 export const supabase = createClient(finalSupabaseUrl, finalSupabaseAnonKey, {

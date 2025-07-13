@@ -41,7 +41,11 @@ const DIFFICULTIES = [
   { value: 'hard', label: 'Hard' },
 ];
 
-export default function AddRoundModal({ visible, onDismiss, onAdd }: AddRoundModalProps) {
+export default function AddRoundModal({
+  visible,
+  onDismiss,
+  onAdd,
+}: AddRoundModalProps) {
   const [roundName, setRoundName] = useState('');
   const [questionCount, setQuestionCount] = useState('10');
   const [difficulty, setDifficulty] = useState('medium');
@@ -62,7 +66,7 @@ export default function AddRoundModal({ visible, onDismiss, onAdd }: AddRoundMod
 
     try {
       setLoading(true);
-      
+
       await onAdd({
         name: roundName.trim(),
         question_count: count,
@@ -84,9 +88,9 @@ export default function AddRoundModal({ visible, onDismiss, onAdd }: AddRoundMod
   };
 
   const toggleCategory = (category: string) => {
-    setSelectedCategories(prev => 
+    setSelectedCategories((prev) =>
       prev.includes(category)
-        ? prev.filter(c => c !== category)
+        ? prev.filter((c) => c !== category)
         : [...prev, category]
     );
   };
@@ -139,12 +143,14 @@ export default function AddRoundModal({ visible, onDismiss, onAdd }: AddRoundMod
             <Text variant="bodySmall" style={styles.hint}>
               Leave empty to include all categories, or select specific ones:
             </Text>
-            
+
             <View style={styles.categoriesContainer}>
               {COMMON_CATEGORIES.map((category) => (
                 <Chip
                   key={category}
-                  mode={selectedCategories.includes(category) ? 'flat' : 'outlined'}
+                  mode={
+                    selectedCategories.includes(category) ? 'flat' : 'outlined'
+                  }
                   selected={selectedCategories.includes(category)}
                   onPress={() => toggleCategory(category)}
                   style={styles.categoryChip}

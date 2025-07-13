@@ -10,9 +10,11 @@ type Player = Database['public']['Tables']['players']['Row'];
 
 export class PartyService {
   // Create a new party
-  static async createParty(partyData: Omit<PartyInsert, 'join_code'>): Promise<Party> {
+  static async createParty(
+    partyData: Omit<PartyInsert, 'join_code'>
+  ): Promise<Party> {
     const { data: joinCode } = await supabase.rpc('generate_join_code');
-    
+
     const { data, error } = await supabase
       .from('parties')
       .insert({
@@ -53,7 +55,10 @@ export class PartyService {
   }
 
   // Update party status
-  static async updatePartyStatus(partyId: string, status: Party['status']): Promise<void> {
+  static async updatePartyStatus(
+    partyId: string,
+    status: Party['status']
+  ): Promise<void> {
     const { error } = await supabase
       .from('parties')
       .update({ status })
@@ -209,7 +214,9 @@ export class PartyService {
   }
 
   // Check if all teams have answered
-  static async checkAllTeamsAnswered(partyQuestionId: string): Promise<boolean> {
+  static async checkAllTeamsAnswered(
+    partyQuestionId: string
+  ): Promise<boolean> {
     const { data, error } = await supabase.rpc('all_teams_answered', {
       party_question_uuid: partyQuestionId,
     });
@@ -222,10 +229,12 @@ export class PartyService {
   static async getCurrentQuestion(roundId: string, questionOrder: number) {
     const { data, error } = await supabase
       .from('party_questions')
-      .select(`
+      .select(
+        `
         *,
         questions (*)
-      `)
+      `
+      )
       .eq('round_id', roundId)
       .eq('question_order', questionOrder)
       .single();

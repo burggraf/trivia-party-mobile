@@ -66,7 +66,10 @@ export default function HostHomeScreen() {
   };
 
   const renderPartyCard = ({ item }: { item: Party }) => (
-    <Card style={styles.partyCard} onPress={() => navigation.navigate('PartySetup', { partyId: item.id })}>
+    <Card
+      style={styles.partyCard}
+      onPress={() => navigation.navigate('PartySetup', { partyId: item.id })}
+    >
       <Card.Content>
         <View style={styles.partyHeader}>
           <Text variant="titleMedium" style={styles.partyName}>
@@ -80,13 +83,13 @@ export default function HostHomeScreen() {
             {getStatusLabel(item.status)}
           </Chip>
         </View>
-        
+
         {item.description && (
           <Text variant="bodyMedium" style={styles.partyDescription}>
             {item.description}
           </Text>
         )}
-        
+
         <View style={styles.partyDetails}>
           <Text variant="bodySmall" style={styles.detailText}>
             Join Code: {item.join_code}

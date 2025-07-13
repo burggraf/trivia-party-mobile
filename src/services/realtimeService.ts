@@ -16,7 +16,7 @@ export class RealtimeService {
     }
   ): () => void {
     const channelName = `party-${partyId}`;
-    
+
     // Remove existing channel if it exists
     this.unsubscribeFromParty(partyId);
 
@@ -88,7 +88,7 @@ export class RealtimeService {
     }
   ): () => void {
     const channelName = `round-${roundId}`;
-    
+
     // Remove existing channel if it exists
     this.unsubscribeFromRound(roundId);
 
@@ -131,7 +131,7 @@ export class RealtimeService {
     }
   ): () => void {
     const channelName = `team-${teamId}`;
-    
+
     // Remove existing channel if it exists
     this.unsubscribeFromTeam(teamId);
 
@@ -175,7 +175,7 @@ export class RealtimeService {
     }
   ): () => void {
     const channelName = `game-events-${partyId}`;
-    
+
     // Remove existing channel if it exists
     if (this.channels.has(channelName)) {
       this.channels.get(channelName)?.unsubscribe();
@@ -199,10 +199,13 @@ export class RealtimeService {
           // Check if all teams have answered
           if (callbacks.onAllTeamsAnswered && payload.new?.party_question_id) {
             try {
-              const { data: allAnswered } = await supabase.rpc('all_teams_answered', {
-                party_question_uuid: payload.new.party_question_id,
-              });
-              
+              const { data: allAnswered } = await supabase.rpc(
+                'all_teams_answered',
+                {
+                  party_question_uuid: payload.new.party_question_id,
+                }
+              );
+
               if (allAnswered) {
                 callbacks.onAllTeamsAnswered(payload.new.party_question_id);
               }

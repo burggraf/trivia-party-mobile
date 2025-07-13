@@ -50,7 +50,8 @@ export default function CreatePartyScreen() {
         [
           {
             text: 'Set Up Rounds',
-            onPress: () => navigation.replace('PartySetup', { partyId: party.id }),
+            onPress: () =>
+              navigation.replace('PartySetup', { partyId: party.id }),
           },
         ]
       );
@@ -70,10 +71,14 @@ export default function CreatePartyScreen() {
   };
 
   const formatDate = (date: Date) => {
-    return date.toLocaleDateString() + ' at ' + date.toLocaleTimeString([], { 
-      hour: '2-digit', 
-      minute: '2-digit' 
-    });
+    return (
+      date.toLocaleDateString() +
+      ' at ' +
+      date.toLocaleTimeString([], {
+        hour: '2-digit',
+        minute: '2-digit',
+      })
+    );
   };
 
   return (
@@ -145,13 +150,13 @@ export default function CreatePartyScreen() {
               1. Your party will be created with a unique join code
             </Text>
             <Text variant="bodyMedium" style={styles.step}>
-              2. You'll set up rounds and select question categories
+              2. You&apos;ll set up rounds and select question categories
             </Text>
             <Text variant="bodyMedium" style={styles.step}>
               3. Players can join using the join code
             </Text>
             <Text variant="bodyMedium" style={styles.step}>
-              4. You'll control the game flow from the host dashboard
+              4. You&apos;ll control the game flow from the host dashboard
             </Text>
           </View>
         </Card.Content>

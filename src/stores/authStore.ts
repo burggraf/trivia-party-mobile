@@ -26,9 +26,10 @@ export const useAuthStore = create<AuthState>((set) => ({
   initialize: async () => {
     try {
       // Check if we're using placeholder Supabase config
-      const isPlaceholder = process.env.EXPO_PUBLIC_SUPABASE_URL?.includes('placeholder') || 
-                           !process.env.EXPO_PUBLIC_SUPABASE_URL;
-      
+      const isPlaceholder =
+        process.env.EXPO_PUBLIC_SUPABASE_URL?.includes('placeholder') ||
+        !process.env.EXPO_PUBLIC_SUPABASE_URL;
+
       if (isPlaceholder) {
         console.warn('⚠️  Supabase not configured - running in demo mode');
         set({ session: null, user: null, initialized: true });
@@ -52,12 +53,15 @@ export const useAuthStore = create<AuthState>((set) => ({
   signIn: async (email: string, password: string) => {
     try {
       set({ loading: true });
-      
-      const isPlaceholder = !process.env.EXPO_PUBLIC_SUPABASE_URL || 
-                           process.env.EXPO_PUBLIC_SUPABASE_URL.includes('placeholder');
-      
+
+      const isPlaceholder =
+        !process.env.EXPO_PUBLIC_SUPABASE_URL ||
+        process.env.EXPO_PUBLIC_SUPABASE_URL.includes('placeholder');
+
       if (isPlaceholder) {
-        throw new Error('Supabase not configured. Please set up your Supabase project first.');
+        throw new Error(
+          'Supabase not configured. Please set up your Supabase project first.'
+        );
       }
 
       const { error } = await supabase.auth.signInWithPassword({
@@ -76,12 +80,15 @@ export const useAuthStore = create<AuthState>((set) => ({
   signUp: async (email: string, password: string, displayName: string) => {
     try {
       set({ loading: true });
-      
-      const isPlaceholder = !process.env.EXPO_PUBLIC_SUPABASE_URL || 
-                           process.env.EXPO_PUBLIC_SUPABASE_URL.includes('placeholder');
-      
+
+      const isPlaceholder =
+        !process.env.EXPO_PUBLIC_SUPABASE_URL ||
+        process.env.EXPO_PUBLIC_SUPABASE_URL.includes('placeholder');
+
       if (isPlaceholder) {
-        throw new Error('Supabase not configured. Please set up your Supabase project first.');
+        throw new Error(
+          'Supabase not configured. Please set up your Supabase project first.'
+        );
       }
 
       const { error } = await supabase.auth.signUp({
