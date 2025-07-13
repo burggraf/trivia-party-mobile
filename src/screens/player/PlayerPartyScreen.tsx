@@ -42,6 +42,7 @@ export default function PlayerPartyScreen() {
   >('waiting');
   const [leaderboard, setLeaderboard] = useState<any[]>([]);
   const [currentQuestionId, setCurrentQuestionId] = useState<string | null>(null);
+  const [subscriptionStatus, setSubscriptionStatus] = useState<string>('connecting');
 
   useEffect(() => {
     loadGameData();
@@ -69,26 +70,11 @@ export default function PlayerPartyScreen() {
       })
       .subscribe((status) => {
         console.log('PlayerPartyScreen: Subscription status:', status);
+        setSubscriptionStatus(status);
       });
-
-    // Fallback polling mechanism in case broadcast fails
-    const pollInterval = setInterval(async () => {
-      if (gameStatus === 'waiting') {
-        try {
-          const currentParty = await PartyService.getPartyById(partyId);
-          if (currentParty?.status === 'active') {
-            console.log('PlayerPartyScreen: Fallback detected game started');
-            handleGameStarted();
-          }
-        } catch (error) {
-          console.error('PlayerPartyScreen: Fallback polling error:', error);
-        }
-      }
-    }, 2000); // Poll every 2 seconds as fallback
 
     return () => {
       supabase.removeChannel(partySubscription);
-      clearInterval(pollInterval);
     };
   }, [partyId, teamId]);
 
@@ -149,6 +135,32 @@ export default function PlayerPartyScreen() {
   const handleTeamScoreUpdate = (teamData: any) => {
     if (teamData.id === team?.id) {
       setTeam(teamData);
+    }
+  };
+
+  const refreshSubscription = async () => {
+    console.log('PlayerPartyScreen: Refreshing subscription manually');
+    setSubscriptionStatus('refreshing');
+    
+    // Check current game state manually
+    try {
+      const currentParty = await PartyService.getPartyById(partyId);
+      if (currentParty?.status === 'active' && gameStatus === 'waiting') {
+        console.log('PlayerPartyScreen: Manual refresh detected game started');
+        await handleGameStarted();
+      }
+      
+      // Also refresh team data
+      const teams = await PartyService.getPartyTeams(partyId);
+      const currentTeam = teams.find((t) => t.id === teamId);
+      if (currentTeam) {
+        setTeam(currentTeam);
+      }
+      
+      setSubscriptionStatus('subscribed');
+    } catch (error) {
+      console.error('PlayerPartyScreen: Error refreshing subscription:', error);
+      setSubscriptionStatus('error');
     }
   };
 
@@ -254,8 +266,19 @@ export default function PlayerPartyScreen() {
             comfortable and prepare for some trivia fun!
           </Text>
           <Text variant="bodySmall" style={styles.statusHint}>
-            ⚡ Connected - you'll be notified instantly when the game starts!
+            ⚡ Connected ({subscriptionStatus}) - you'll be notified instantly when the game starts!
           </Text>
+          
+          <Button
+            mode="outlined"
+            onPress={refreshSubscription}
+            style={styles.refreshButton}
+            icon="refresh"
+            loading={subscriptionStatus === 'refreshing'}
+            disabled={subscriptionStatus === 'refreshing'}
+          >
+            Refresh Connection
+          </Button>
         </Card.Content>
       </Card>
 
@@ -346,6 +369,17 @@ export default function PlayerPartyScreen() {
                 <Text variant="bodySmall" style={styles.submittedHint}>
                   ⚡ You'll be notified instantly when the next question appears!
                 </Text>
+                
+                <Button
+                  mode="text"
+                  onPress={refreshSubscription}
+                  style={styles.refreshButtonSmall}
+                  icon="refresh"
+                  loading={subscriptionStatus === 'refreshing'}
+                  disabled={subscriptionStatus === 'refreshing'}
+                >
+                  Refresh
+                </Button>
               </Card.Content>
             </Card>
           )}
@@ -466,6 +500,13 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     marginTop: 8,
     fontStyle: 'italic',
+  },
+  refreshButton: {
+    marginTop: 16,
+    borderColor: '#6366f1',
+  },
+  refreshButtonSmall: {
+    marginTop: 8,
   },
   teamInfoCard: {
     elevation: 2,

@@ -333,45 +333,89 @@ export class PartyService {
   // Broadcast game events
   static async broadcastGameStarted(partyId: string) {
     console.log('PartyService: Broadcasting game started for party:', partyId);
-    const channel = supabase.channel(`party-${partyId}`);
-    const result = await channel.send({
-      type: 'broadcast',
-      event: 'game_started',
-      payload: { partyId }
-    });
-    console.log('PartyService: Game started broadcast result:', result);
+    try {
+      const channelName = `party-${partyId}`;
+      const channel = supabase.channel(channelName);
+      
+      // Subscribe to the channel first to ensure it exists
+      await new Promise((resolve) => {
+        channel.subscribe((status) => {
+          console.log('PartyService: Broadcast channel status for game_started:', status);
+          if (status === 'SUBSCRIBED') {
+            resolve(true);
+          }
+        });
+      });
+
+      const result = await channel.send({
+        type: 'broadcast',
+        event: 'game_started',
+        payload: { partyId }
+      });
+      console.log('PartyService: Game started broadcast result:', result);
+    } catch (error) {
+      console.error('PartyService: Error broadcasting game started:', error);
+    }
   }
 
   static async broadcastNewQuestion(partyId: string, roundId: string, questionOrder: number) {
     console.log('PartyService: Broadcasting new question for party:', partyId, 'round:', roundId, 'question:', questionOrder);
-    const channel = supabase.channel(`party-${partyId}`);
-    const result = await channel.send({
-      type: 'broadcast',
-      event: 'new_question',
-      payload: { roundId, questionOrder }
-    });
-    console.log('PartyService: New question broadcast result:', result);
+    try {
+      const channelName = `party-${partyId}`;
+      const channel = supabase.channel(channelName);
+      
+      // Subscribe to the channel first to ensure it exists
+      await new Promise((resolve) => {
+        channel.subscribe((status) => {
+          console.log('PartyService: Broadcast channel status for new_question:', status);
+          if (status === 'SUBSCRIBED') {
+            resolve(true);
+          }
+        });
+      });
+
+      const result = await channel.send({
+        type: 'broadcast',
+        event: 'new_question',
+        payload: { roundId, questionOrder }
+      });
+      console.log('PartyService: New question broadcast result:', result);
+    } catch (error) {
+      console.error('PartyService: Error broadcasting new question:', error);
+    }
   }
 
   static async broadcastGameEnded(partyId: string) {
     console.log('PartyService: Broadcasting game ended for party:', partyId);
-    const channel = supabase.channel(`party-${partyId}`);
-    const result = await channel.send({
-      type: 'broadcast',
-      event: 'game_ended',
-      payload: { partyId }
-    });
-    console.log('PartyService: Game ended broadcast result:', result);
+    try {
+      const channelName = `party-${partyId}`;
+      const channel = supabase.channel(channelName);
+      
+      const result = await channel.send({
+        type: 'broadcast',
+        event: 'game_ended',
+        payload: { partyId }
+      });
+      console.log('PartyService: Game ended broadcast result:', result);
+    } catch (error) {
+      console.error('PartyService: Error broadcasting game ended:', error);
+    }
   }
 
   static async broadcastTeamScoreUpdate(partyId: string, team: Team) {
     console.log('PartyService: Broadcasting team score update for party:', partyId, 'team:', team.id);
-    const channel = supabase.channel(`party-${partyId}`);
-    const result = await channel.send({
-      type: 'broadcast',
-      event: 'team_score_updated',
-      payload: team
-    });
-    console.log('PartyService: Team score broadcast result:', result);
+    try {
+      const channelName = `party-${partyId}`;
+      const channel = supabase.channel(channelName);
+      
+      const result = await channel.send({
+        type: 'broadcast',
+        event: 'team_score_updated',
+        payload: team
+      });
+      console.log('PartyService: Team score broadcast result:', result);
+    } catch (error) {
+      console.error('PartyService: Error broadcasting team score update:', error);
+    }
   }
 }
