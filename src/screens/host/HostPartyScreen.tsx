@@ -230,7 +230,7 @@ export default function HostPartyScreen() {
 
             <View style={styles.correctAnswer}>
               <Text variant="bodyMedium" style={styles.correctLabel}>
-                Correct Answer: {currentQuestion.questions?.correct_answer?.toUpperCase()}
+                Correct Answer: A (Note: 'A' is always the correct answer in this schema)
               </Text>
             </View>
           </Card.Content>

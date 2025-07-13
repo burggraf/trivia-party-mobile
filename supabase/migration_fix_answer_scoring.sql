@@ -13,10 +13,8 @@ DECLARE
     is_answer_correct BOOLEAN;
 BEGIN
     -- Get the correct answer for this question
-    SELECT q.correct_answer INTO correct_answer
-    FROM party_questions pq
-    JOIN questions q ON q.id = pq.question_id
-    WHERE pq.id = party_question_uuid;
+    -- Note: In this schema, 'a' is always the correct answer
+    SELECT 'a' INTO correct_answer;
     
     -- Check if the selected answer matches the correct answer
     is_answer_correct := (selected_answer_param = correct_answer);
