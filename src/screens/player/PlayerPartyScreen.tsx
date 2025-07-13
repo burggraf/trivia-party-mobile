@@ -40,6 +40,7 @@ export default function PlayerPartyScreen() {
     'waiting' | 'active' | 'completed'
   >('waiting');
   const [leaderboard, setLeaderboard] = useState<any[]>([]);
+  const [currentQuestionId, setCurrentQuestionId] = useState<string | null>(null);
 
   useEffect(() => {
     loadGameData();
@@ -48,8 +49,10 @@ export default function PlayerPartyScreen() {
     const pollInterval = setInterval(() => {
       if (gameStatus === 'waiting') {
         checkGameStatus();
+      } else if (gameStatus === 'active') {
+        checkForNewQuestion();
       }
-    }, 3000); // Poll every 3 seconds when waiting
+    }, 3000); // Poll every 3 seconds
     
     return () => clearInterval(pollInterval);
   }, [partyId, teamId, gameStatus]);
@@ -100,39 +103,80 @@ export default function PlayerPartyScreen() {
     }
   };
 
-  const loadCurrentQuestion = async () => {
+  const checkForNewQuestion = async () => {
     try {
-      // For now, we'll load the first question of the first round
-      // In a real implementation, this would come from game state synchronization
+      // Simple approach: reload the current question and check if it changed
       const rounds = await PartyService.getPartyRounds(partyId);
       if (rounds.length > 0) {
-        const firstRound = rounds[0];
-        const question = await PartyService.getCurrentQuestion(firstRound.id, 1);
+        // Check if we need to find the latest available question
+        let latestQuestion = null;
+        let latestRoundId = null;
+        let latestQuestionOrder = 0;
         
-        if (question && question.questions) {
-          console.log('PlayerPartyScreen: Raw question data:', question.questions);
-          setCurrentQuestion({
-            id: question.questions.id,
-            party_question_id: question.id,
-            question: question.questions.question,
-            a: question.questions.a,
-            b: question.questions.b,
-            c: question.questions.c,
-            d: question.questions.d,
-            category: question.questions.category,
-            difficulty: question.questions.difficulty,
-          });
-          console.log('PlayerPartyScreen: Set current question:', {
-            question: question.questions.question,
-            a: question.questions.a,
-            b: question.questions.b,
-            c: question.questions.c,
-            d: question.questions.d,
-          });
+        for (const round of rounds) {
+          for (let questionOrder = 1; questionOrder <= round.question_count; questionOrder++) {
+            try {
+              const question = await PartyService.getCurrentQuestion(round.id, questionOrder);
+              if (question) {
+                latestQuestion = question;
+                latestRoundId = round.id;
+                latestQuestionOrder = questionOrder;
+              }
+            } catch (error) {
+              // Question doesn't exist yet, stop looking in this round
+              break;
+            }
+          }
+        }
+        
+        if (latestQuestion && latestQuestion.id !== currentQuestionId) {
+          console.log('PlayerPartyScreen: New question detected:', latestQuestion.id);
+          await loadSpecificQuestion(latestRoundId!, latestQuestionOrder);
         }
       }
     } catch (error) {
-      console.error('Error loading current question:', error);
+      console.error('Error checking for new question:', error);
+    }
+  };
+
+  const loadCurrentQuestion = async () => {
+    await loadSpecificQuestion();
+  };
+
+  const loadSpecificQuestion = async (roundId?: string, questionOrder?: number) => {
+    try {
+      let targetRoundId = roundId;
+      let targetQuestionOrder = questionOrder || 1;
+      
+      if (!targetRoundId) {
+        // Load first question of first round by default
+        const rounds = await PartyService.getPartyRounds(partyId);
+        if (rounds.length === 0) return;
+        targetRoundId = rounds[0].id;
+      }
+
+      const question = await PartyService.getCurrentQuestion(targetRoundId, targetQuestionOrder);
+      
+      if (question && question.questions) {
+        console.log('PlayerPartyScreen: Loading question:', question.id);
+        setCurrentQuestion({
+          id: question.questions.id,
+          party_question_id: question.id,
+          question: question.questions.question,
+          a: question.questions.a,
+          b: question.questions.b,
+          c: question.questions.c,
+          d: question.questions.d,
+          category: question.questions.category,
+          difficulty: question.questions.difficulty,
+        });
+        setCurrentQuestionId(question.id);
+        // Reset answer state for new question
+        setSelectedAnswer(null);
+        setHasAnswered(false);
+      }
+    } catch (error) {
+      console.error('Error loading specific question:', error);
     }
   };
 
@@ -284,7 +328,10 @@ export default function PlayerPartyScreen() {
             <Card style={styles.submittedCard}>
               <Card.Content>
                 <Text variant="bodyMedium" style={styles.submittedText}>
-                  ✓ Answer submitted! Waiting for other teams...
+                  ✓ Answer submitted! Waiting for next question...
+                </Text>
+                <Text variant="bodySmall" style={styles.submittedHint}>
+                  🔄 Checking for updates every few seconds
                 </Text>
               </Card.Content>
             </Card>
@@ -491,6 +538,12 @@ const styles = StyleSheet.create({
   submittedText: {
     color: '#059669',
     textAlign: 'center',
+  },
+  submittedHint: {
+    color: '#6b7280',
+    textAlign: 'center',
+    marginTop: 4,
+    fontSize: 12,
   },
   leaderboardCard: {
     elevation: 2,
