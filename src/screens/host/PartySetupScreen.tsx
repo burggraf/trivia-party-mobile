@@ -21,6 +21,7 @@ export default function PartySetupScreen() {
   const [rounds, setRounds] = useState<Round[]>([]);
   const [loading, setLoading] = useState(true);
   const [showAddRoundModal, setShowAddRoundModal] = useState(false);
+  const [roundQuestionCounts, setRoundQuestionCounts] = useState<Record<string, number>>({});
 
   const handleShowModal = () => {
     setShowAddRoundModal(true);
@@ -39,6 +40,19 @@ export default function PartySetupScreen() {
 
       setParty(currentParty);
       setRounds(roundsData);
+
+      // Load question counts for each round
+      const questionCounts: Record<string, number> = {};
+      for (const round of roundsData) {
+        try {
+          const questions = await PartyService.getRoundQuestions(round.id);
+          questionCounts[round.id] = questions.length;
+        } catch (error) {
+          console.error(`Error loading questions for round ${round.id}:`, error);
+          questionCounts[round.id] = 0;
+        }
+      }
+      setRoundQuestionCounts(questionCounts);
     } catch (error) {
       console.error('Error loading party data:', error);
     } finally {
@@ -59,11 +73,51 @@ export default function PartySetupScreen() {
       };
       
       const newRound = await PartyService.addRound(insertData);
+      
+      // Automatically select questions for the new round
+      try {
+        await PartyService.selectQuestionsForRound(
+          newRound.id,
+          roundData.categories || [],
+          roundData.difficulty,
+          roundData.question_count
+        );
+      } catch (questionError) {
+        console.error('Error selecting questions:', questionError);
+        alert('Round created but failed to select questions. You can select them manually later.');
+      }
+      
       setRounds([...rounds, newRound]);
+      // Update question count for the new round
+      setRoundQuestionCounts(prev => ({
+        ...prev,
+        [newRound.id]: roundData.question_count
+      }));
       handleHideModal();
     } catch (error) {
       console.error('Error adding round:', error);
       alert(`Error adding round: ${error.message || 'Unknown error'}`);
+    }
+  };
+
+  const handleSelectQuestions = async (round: Round) => {
+    try {
+      await PartyService.selectQuestionsForRound(
+        round.id,
+        round.categories || [],
+        round.difficulty,
+        round.question_count
+      );
+      // Update the question count
+      const questions = await PartyService.getRoundQuestions(round.id);
+      setRoundQuestionCounts(prev => ({
+        ...prev,
+        [round.id]: questions.length
+      }));
+      alert(`Successfully selected ${questions.length} questions for "${round.name}"`);
+    } catch (error) {
+      console.error('Error selecting questions:', error);
+      alert(`Error selecting questions: ${error.message || 'Unknown error'}`);
     }
   };
 
@@ -94,7 +148,10 @@ export default function PartySetupScreen() {
         </View>
 
         <View style={styles.roundDetails}>
-          <Text variant="bodyMedium">Questions: {item.question_count}</Text>
+          <Text variant="bodyMedium">
+            Questions: {roundQuestionCounts[item.id] || 0} / {item.question_count}
+            {roundQuestionCounts[item.id] === item.question_count && ' ✓'}
+          </Text>
           <Text variant="bodyMedium">
             Categories:{' '}
             {item.categories.length > 0 ? item.categories.join(', ') : 'All'}
@@ -103,6 +160,19 @@ export default function PartySetupScreen() {
             <Text variant="bodyMedium">Difficulty: {item.difficulty}</Text>
           )}
         </View>
+
+        {party?.status === 'draft' && (
+          <View style={styles.roundActions}>
+            <Button
+              mode="outlined"
+              onPress={() => handleSelectQuestions(item)}
+              style={styles.selectQuestionsButton}
+              icon="refresh"
+            >
+              Select Questions
+            </Button>
+          </View>
+        )}
       </Card.Content>
     </Card>
   );
@@ -296,5 +366,14 @@ const styles = StyleSheet.create({
     right: 0,
     bottom: 0,
     backgroundColor: '#6366f1',
+  },
+  roundActions: {
+    marginTop: 16,
+    paddingTop: 12,
+    borderTopWidth: 1,
+    borderTopColor: '#e5e7eb',
+  },
+  selectQuestionsButton: {
+    backgroundColor: '#f3f4f6',
   },
 });

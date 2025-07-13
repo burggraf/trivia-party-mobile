@@ -280,4 +280,19 @@ export class PartyService {
     if (error) throw error;
     return data || [];
   }
+
+  // Get questions for a round
+  static async getRoundQuestions(roundId: string) {
+    const { data, error } = await supabase
+      .from('party_questions')
+      .select(`
+        *,
+        questions (*)
+      `)
+      .eq('round_id', roundId)
+      .order('question_order');
+
+    if (error) throw error;
+    return data || [];
+  }
 }
