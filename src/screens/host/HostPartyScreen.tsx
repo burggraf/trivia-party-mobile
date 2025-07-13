@@ -54,6 +54,16 @@ export default function HostPartyScreen() {
         await loadCurrentQuestion(roundsData[0].id, 1);
         // Initialize game state if not already set
         await PartyService.updateGameState(partyId, roundsData[0].id, 1);
+        
+        // Broadcast the first question to players who just joined
+        if (currentQuestion) {
+          const questionWithRoundName = {
+            ...currentQuestion,
+            round_name: roundsData[0].name
+          };
+          await PartyService.broadcastQuestionToPlayers(partyId, questionWithRoundName);
+        }
+        
         setGameState(prev => ({
           ...prev,
           totalQuestions: roundsData[0].question_count,
@@ -85,7 +95,16 @@ export default function HostPartyScreen() {
     if (nextQuestionNum <= currentRound.question_count) {
       // Move to next question in current round
       await loadCurrentQuestion(currentRound.id, nextQuestionNum);
-      await PartyService.broadcastNewQuestion(partyId, currentRound.id, nextQuestionNum);
+      
+      // Broadcast the full question data to players
+      if (currentQuestion) {
+        const questionWithRoundName = {
+          ...currentQuestion,
+          round_name: currentRound.name
+        };
+        await PartyService.broadcastQuestionToPlayers(partyId, questionWithRoundName);
+      }
+      
       setGameState(prev => ({
         ...prev,
         currentQuestion: nextQuestionNum,
@@ -96,7 +115,16 @@ export default function HostPartyScreen() {
       if (gameState.currentRound < rounds.length) {
         const nextRound = rounds[gameState.currentRound];
         await loadCurrentQuestion(nextRound.id, 1);
-        await PartyService.broadcastNewQuestion(partyId, nextRound.id, 1);
+        
+        // Broadcast the full question data to players
+        if (currentQuestion) {
+          const questionWithRoundName = {
+            ...currentQuestion,
+            round_name: nextRound.name
+          };
+          await PartyService.broadcastQuestionToPlayers(partyId, questionWithRoundName);
+        }
+        
         setGameState({
           currentRound: gameState.currentRound + 1,
           currentQuestion: 1,

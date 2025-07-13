@@ -358,8 +358,8 @@ export class PartyService {
     }
   }
 
-  static async broadcastNewQuestion(partyId: string, roundId: string, questionOrder: number) {
-    console.log('PartyService: Broadcasting new question for party:', partyId, 'round:', roundId, 'question:', questionOrder);
+  static async broadcastQuestionToPlayers(partyId: string, questionData: any) {
+    console.log('PartyService: Broadcasting question to players for party:', partyId);
     try {
       const channelName = `party-${partyId}`;
       const channel = supabase.channel(channelName);
@@ -367,7 +367,7 @@ export class PartyService {
       // Subscribe to the channel first to ensure it exists
       await new Promise((resolve) => {
         channel.subscribe((status) => {
-          console.log('PartyService: Broadcast channel status for new_question:', status);
+          console.log('PartyService: Broadcast channel status for question:', status);
           if (status === 'SUBSCRIBED') {
             resolve(true);
           }
@@ -376,12 +376,23 @@ export class PartyService {
 
       const result = await channel.send({
         type: 'broadcast',
-        event: 'new_question',
-        payload: { roundId, questionOrder }
+        event: 'question_data',
+        payload: {
+          party_question_id: questionData.id,
+          question: questionData.questions.question,
+          option_a: questionData.questions.a,
+          option_b: questionData.questions.b,
+          option_c: questionData.questions.c,
+          option_d: questionData.questions.d,
+          category: questionData.questions.category,
+          difficulty: questionData.questions.difficulty,
+          round_name: questionData.round_name,
+          question_number: questionData.question_order
+        }
       });
-      console.log('PartyService: New question broadcast result:', result);
+      console.log('PartyService: Question broadcast result:', result);
     } catch (error) {
-      console.error('PartyService: Error broadcasting new question:', error);
+      console.error('PartyService: Error broadcasting question:', error);
     }
   }
 

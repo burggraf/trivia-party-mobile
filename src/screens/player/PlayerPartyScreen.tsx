@@ -10,15 +10,16 @@ type Party = Database['public']['Tables']['parties']['Row'];
 type Team = Database['public']['Tables']['teams']['Row'];
 
 interface CurrentQuestion {
-  id: string;
   party_question_id: string;
   question: string;
-  a: string;
-  b: string;
-  c: string;
-  d: string;
+  option_a: string;
+  option_b: string;
+  option_c: string;
+  option_d: string;
   category: string;
   difficulty: string;
+  round_name: string;
+  question_number: number;
 }
 
 export default function PlayerPartyScreen() {
@@ -56,9 +57,9 @@ export default function PlayerPartyScreen() {
         console.log('PlayerPartyScreen: Game started broadcast received:', payload);
         handleGameStarted();
       })
-      .on('broadcast', { event: 'new_question' }, (payload) => {
-        console.log('PlayerPartyScreen: New question broadcast received:', payload);
-        handleNewQuestionBroadcast(payload.payload);
+      .on('broadcast', { event: 'question_data' }, (payload) => {
+        console.log('PlayerPartyScreen: Question data broadcast received:', payload);
+        handleQuestionDataBroadcast(payload.payload);
       })
       .on('broadcast', { event: 'game_ended' }, (payload) => {
         console.log('PlayerPartyScreen: Game ended broadcast received:', payload);
@@ -109,22 +110,20 @@ export default function PlayerPartyScreen() {
   const handleGameStarted = async () => {
     if (gameStatus === 'waiting') {
       setGameStatus('active');
-      await loadCurrentQuestion();
-      // Refresh team data
+      // Refresh team data - question will come via broadcast
       const teams = await PartyService.getPartyTeams(partyId);
       const currentTeam = teams.find((t) => t.id === teamId);
       setTeam(currentTeam || null);
     }
   };
 
-  const handleNewQuestionBroadcast = async (questionData: any) => {
-    const { roundId, questionOrder } = questionData;
-    const newQuestionId = `${roundId}-${questionOrder}`;
-    
-    if (newQuestionId !== currentQuestionId) {
-      console.log('PlayerPartyScreen: Loading new question from broadcast:', newQuestionId);
-      await loadSpecificQuestion(roundId, questionOrder);
-    }
+  const handleQuestionDataBroadcast = (questionData: any) => {
+    console.log('PlayerPartyScreen: Setting question data from broadcast:', questionData);
+    setCurrentQuestion(questionData);
+    setCurrentQuestionId(questionData.party_question_id);
+    // Reset answer state for new question
+    setSelectedAnswer(null);
+    setHasAnswered(false);
   };
 
   const handleGameEnded = () => {
@@ -153,48 +152,6 @@ export default function PlayerPartyScreen() {
       } else if (currentParty?.status === 'completed') {
         console.log('PlayerPartyScreen: Manual refresh detected game ended');
         handleGameEnded();
-      } else if (currentParty?.status === 'active' && gameStatus === 'active') {
-        // Since all questions exist in DB, we need a different way to find the "current" question
-        // For now, let's just try to load the next logical question
-        console.log('PlayerPartyScreen: Trying to find next question...');
-        
-        if (currentQuestionId) {
-          const [roundId, questionOrderStr] = currentQuestionId.split('-');
-          const currentOrder = parseInt(questionOrderStr);
-          const rounds = await PartyService.getPartyRounds(partyId);
-          const currentRound = rounds.find(r => r.id === roundId);
-          
-          if (currentRound) {
-            console.log('PlayerPartyScreen: Current round:', currentRound.name, 'question:', currentOrder, 'of', currentRound.question_count);
-            
-            // Try next question in current round
-            if (currentOrder < currentRound.question_count) {
-              const nextOrder = currentOrder + 1;
-              console.log('PlayerPartyScreen: Trying next question in round:', nextOrder);
-              try {
-                await loadSpecificQuestion(roundId, nextOrder);
-                console.log('PlayerPartyScreen: Loaded next question successfully');
-              } catch (error) {
-                console.log('PlayerPartyScreen: Next question not available yet');
-              }
-            } else {
-              // Try first question of next round
-              const currentRoundIndex = rounds.findIndex(r => r.id === roundId);
-              if (currentRoundIndex >= 0 && currentRoundIndex < rounds.length - 1) {
-                const nextRound = rounds[currentRoundIndex + 1];
-                console.log('PlayerPartyScreen: Trying first question of next round:', nextRound.name);
-                try {
-                  await loadSpecificQuestion(nextRound.id, 1);
-                  console.log('PlayerPartyScreen: Loaded next round successfully');
-                } catch (error) {
-                  console.log('PlayerPartyScreen: Next round not available yet');
-                }
-              } else {
-                console.log('PlayerPartyScreen: No more questions available');
-              }
-            }
-          }
-        }
       }
       
       // Refresh team data
@@ -209,47 +166,6 @@ export default function PlayerPartyScreen() {
     } catch (error) {
       console.error('PlayerPartyScreen: Error refreshing subscription:', error);
       setSubscriptionStatus('error');
-    }
-  };
-
-  const loadCurrentQuestion = async () => {
-    await loadSpecificQuestion();
-  };
-
-  const loadSpecificQuestion = async (roundId?: string, questionOrder?: number) => {
-    try {
-      let targetRoundId = roundId;
-      let targetQuestionOrder = questionOrder || 1;
-      
-      if (!targetRoundId) {
-        // Load first question of first round by default
-        const rounds = await PartyService.getPartyRounds(partyId);
-        if (rounds.length === 0) return;
-        targetRoundId = rounds[0].id;
-      }
-
-      const question = await PartyService.getCurrentQuestion(targetRoundId, targetQuestionOrder);
-      
-      if (question && question.questions) {
-        console.log('PlayerPartyScreen: Loading question:', question.id);
-        setCurrentQuestion({
-          id: question.questions.id,
-          party_question_id: question.id,
-          question: question.questions.question,
-          a: question.questions.a,
-          b: question.questions.b,
-          c: question.questions.c,
-          d: question.questions.d,
-          category: question.questions.category,
-          difficulty: question.questions.difficulty,
-        });
-        setCurrentQuestionId(`${targetRoundId}-${targetQuestionOrder}`);
-        // Reset answer state for new question
-        setSelectedAnswer(null);
-        setHasAnswered(false);
-      }
-    } catch (error) {
-      console.error('Error loading specific question:', error);
     }
   };
 
@@ -390,7 +306,7 @@ export default function PlayerPartyScreen() {
                   color="#6366f1"
                 />
                 <Text variant="bodyLarge" style={styles.answerText}>
-                  {currentQuestion?.[option as keyof CurrentQuestion] || `Option ${option.toUpperCase()} text missing`}
+                  {currentQuestion?.[`option_${option}` as keyof CurrentQuestion] || `Option ${option.toUpperCase()} text missing`}
                 </Text>
               </View>
             ))}
