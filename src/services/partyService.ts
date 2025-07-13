@@ -131,12 +131,25 @@ export class PartyService {
     if (error) throw error;
   }
 
-  // Join party as player
-  static async joinParty(
+  // Get existing player or create new one
+  static async getOrCreatePlayer(
     partyId: string,
     displayName: string,
     userId: string
   ): Promise<Player> {
+    // First try to find existing player
+    const { data: existingPlayer } = await supabase
+      .from('players')
+      .select('*')
+      .eq('party_id', partyId)
+      .eq('user_id', userId)
+      .single();
+
+    if (existingPlayer) {
+      return existingPlayer;
+    }
+
+    // Create new player if doesn't exist
     const { data, error } = await supabase
       .from('players')
       .insert({
@@ -150,6 +163,31 @@ export class PartyService {
 
     if (error) throw error;
     return data;
+  }
+
+  // Join party as player (legacy method - now uses getOrCreatePlayer)
+  static async joinParty(
+    partyId: string,
+    displayName: string,
+    userId: string
+  ): Promise<Player> {
+    return this.getOrCreatePlayer(partyId, displayName, userId);
+  }
+
+  // Get player's existing team in a party
+  static async getPlayerTeam(partyId: string, userId: string): Promise<Team | null> {
+    const { data, error } = await supabase
+      .from('players')
+      .select(`
+        team_id,
+        teams (*)
+      `)
+      .eq('party_id', partyId)
+      .eq('user_id', userId)
+      .single();
+
+    if (error || !data?.team_id) return null;
+    return data.teams as Team;
   }
 
   // Create or join team
@@ -328,6 +366,54 @@ export class PartyService {
 
     if (error) throw error;
     return data;
+  }
+
+  // Find next unanswered question for resume functionality
+  static async findNextUnansweredQuestion(partyId: string) {
+    try {
+      // Get all rounds for this party
+      const rounds = await this.getPartyRounds(partyId);
+      if (rounds.length === 0) return null;
+
+      // Get all teams for this party
+      const teams = await this.getPartyTeams(partyId);
+      if (teams.length === 0) return null;
+
+      // Check each round and question to find the next unanswered one
+      for (const round of rounds) {
+        const questions = await this.getRoundQuestions(round.id);
+        
+        for (const question of questions) {
+          // Count how many teams have answered this question
+          const { data: answers, error } = await supabase
+            .from('answers')
+            .select('team_id')
+            .eq('party_question_id', question.id);
+
+          if (error) throw error;
+
+          const answeredTeamIds = new Set(answers?.map(a => a.team_id) || []);
+          const unansweredTeams = teams.filter(team => !answeredTeamIds.has(team.id));
+
+          // If not all teams have answered, this is our next question
+          if (unansweredTeams.length > 0) {
+            return {
+              round,
+              question,
+              questionOrder: question.question_order,
+              unansweredTeams: unansweredTeams.length,
+              totalTeams: teams.length
+            };
+          }
+        }
+      }
+
+      // All questions have been answered
+      return null;
+    } catch (error) {
+      console.error('Error finding next unanswered question:', error);
+      throw error;
+    }
   }
 
   // Broadcast game events

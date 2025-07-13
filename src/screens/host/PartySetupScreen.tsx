@@ -155,6 +155,16 @@ export default function PartySetupScreen() {
     }
   };
 
+  const handleResumeParty = async () => {
+    try {
+      // Navigate directly to host party controls
+      // HostPartyScreen will handle finding and broadcasting the next question
+      navigation.navigate('HostParty', { partyId });
+    } catch (error) {
+      console.error('Error resuming party:', error);
+    }
+  };
+
   const renderRoundCard = ({ item }: { item: Round }) => (
     <Card style={styles.roundCard}>
       <Card.Content>
@@ -289,6 +299,17 @@ export default function PartySetupScreen() {
             Start Party
           </Button>
         )}
+
+        {party.status === 'active' && (
+          <Button
+            mode="contained"
+            style={[styles.startButton, styles.resumeButton]}
+            onPress={handleResumeParty}
+            icon="play"
+          >
+            Resume Game
+          </Button>
+        )}
       </ScrollView>
 
       {party.status === 'draft' && (
@@ -379,6 +400,9 @@ const styles = StyleSheet.create({
   startButton: {
     paddingVertical: 8,
     backgroundColor: '#10b981',
+  },
+  resumeButton: {
+    backgroundColor: '#f59e0b',
   },
   fab: {
     position: 'absolute',

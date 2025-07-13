@@ -65,10 +65,20 @@ export default function HostHomeScreen() {
     }
   };
 
+  const handlePartyPress = (party: Party) => {
+    if (party.status === 'active') {
+      // Navigate directly to host controls for active games
+      navigation.navigate('HostParty', { partyId: party.id });
+    } else {
+      // Navigate to setup for draft/completed games
+      navigation.navigate('PartySetup', { partyId: party.id });
+    }
+  };
+
   const renderPartyCard = ({ item }: { item: Party }) => (
     <Card
       style={styles.partyCard}
-      onPress={() => navigation.navigate('PartySetup', { partyId: item.id })}
+      onPress={() => handlePartyPress(item)}
     >
       <Card.Content>
         <View style={styles.partyHeader}>
@@ -101,6 +111,14 @@ export default function HostHomeScreen() {
             Max Teams: {item.max_teams || 'Unlimited'}
           </Text>
         </View>
+
+        {item.status === 'active' && (
+          <View style={styles.activeGameActions}>
+            <Text variant="bodySmall" style={styles.resumeHint}>
+              Tap to resume active game
+            </Text>
+          </View>
+        )}
       </Card.Content>
     </Card>
   );
@@ -223,5 +241,15 @@ const styles = StyleSheet.create({
     right: 0,
     bottom: 0,
     backgroundColor: '#6366f1',
+  },
+  activeGameActions: {
+    marginTop: 8,
+    paddingTop: 8,
+    borderTopWidth: 1,
+    borderTopColor: '#e5e7eb',
+  },
+  resumeHint: {
+    color: '#10b981',
+    fontStyle: 'italic',
   },
 });

@@ -49,31 +49,65 @@ export default function HostPartyScreen() {
       setRounds(roundsData);
       setTeams(teamsData);
 
-      // Load first round's first question if game is active
+      // Load current/next question if game is active
       if (currentParty?.status === 'active' && roundsData.length > 0) {
         try {
+          // Find the next unanswered question for resuming
+          const nextQuestion = await PartyService.findNextUnansweredQuestion(partyId);
+          
+          if (nextQuestion) {
+            console.log('HostPartyScreen: Resuming game with next unanswered question:', nextQuestion);
+            
+            // Load the specific question
+            const questionData = await loadCurrentQuestion(nextQuestion.round.id, nextQuestion.questionOrder);
+            
+            // Update game state to current position
+            await PartyService.updateGameState(partyId, nextQuestion.round.id, nextQuestion.questionOrder);
+            
+            // Set the correct game state
+            const currentRoundIndex = roundsData.findIndex(r => r.id === nextQuestion.round.id);
+            setGameState({
+              currentRound: currentRoundIndex + 1,
+              currentQuestion: nextQuestion.questionOrder,
+              totalQuestions: nextQuestion.round.question_count,
+              isShowingResults: false,
+            });
+            
+            // Broadcast the current question to players who are joining/rejoining
+            if (questionData) {
+              const questionWithRoundName = {
+                ...questionData,
+                round_name: nextQuestion.round.name
+              };
+              console.log('HostPartyScreen: Broadcasting resume question:', questionWithRoundName);
+              await PartyService.broadcastQuestionToPlayers(partyId, questionWithRoundName);
+            }
+          } else {
+            // All questions answered - game should be completed
+            console.log('HostPartyScreen: All questions answered, game should be completed');
+            await PartyService.updatePartyStatus(partyId, 'completed');
+            setGameState({
+              currentRound: roundsData.length,
+              currentQuestion: roundsData[roundsData.length - 1]?.question_count || 1,
+              totalQuestions: roundsData[roundsData.length - 1]?.question_count || 1,
+              isShowingResults: true,
+            });
+          }
+        } catch (error) {
+          console.error('HostPartyScreen: Error resuming active game:', error);
+          // Fallback to first question if resume fails
           const firstQuestion = await loadCurrentQuestion(roundsData[0].id, 1);
-          
-          // Initialize game state if not already set
-          await PartyService.updateGameState(partyId, roundsData[0].id, 1);
-          
-          // Broadcast the first question to players who just joined
           if (firstQuestion) {
             const questionWithRoundName = {
               ...firstQuestion,
               round_name: roundsData[0].name
             };
-            console.log('HostPartyScreen: Broadcasting first question:', questionWithRoundName);
             await PartyService.broadcastQuestionToPlayers(partyId, questionWithRoundName);
           }
-          
           setGameState(prev => ({
             ...prev,
             totalQuestions: roundsData[0].question_count,
           }));
-        } catch (error) {
-          console.error('HostPartyScreen: Error setting up active game:', error);
-          // Continue loading even if broadcast fails
         }
       }
     } catch (error) {

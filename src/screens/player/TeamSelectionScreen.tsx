@@ -35,6 +35,7 @@ export default function TeamSelectionScreen() {
   const [joining, setJoining] = useState(false);
   const [showCreateTeam, setShowCreateTeam] = useState(false);
   const [newTeamName, setNewTeamName] = useState('');
+  const [existingTeam, setExistingTeam] = useState<Team | null>(null);
 
   useEffect(() => {
     loadData();
@@ -49,6 +50,22 @@ export default function TeamSelectionScreen() {
 
       setParty(currentParty);
       setTeams(teamsData);
+
+      // Check if user already has a team in this party
+      if (user) {
+        const playerTeam = await PartyService.getPlayerTeam(partyId, user.id);
+        if (playerTeam) {
+          setExistingTeam(playerTeam);
+          console.log('Player already has team:', playerTeam.name);
+          
+          // If game is active, automatically rejoin
+          if (currentParty?.status === 'active') {
+            console.log('Auto-rejoining active game with existing team');
+            navigation.navigate('PlayerGame', { partyId, teamId: playerTeam.id });
+            return;
+          }
+        }
+      }
     } catch (error) {
       console.error('Error loading data:', error);
       Alert.alert('Error', 'Failed to load party information');
@@ -66,14 +83,14 @@ export default function TeamSelectionScreen() {
     try {
       setJoining(true);
 
-      // First join the party as a player
-      const player = await PartyService.joinParty(
+      // Get or create player (handles existing players gracefully)
+      const player = await PartyService.getOrCreatePlayer(
         partyId,
         user.user_metadata?.display_name || user.email || 'Player',
         user.id
       );
 
-      // Then join the selected team
+      // Join the selected team (this handles existing teams)
       await PartyService.createOrJoinTeam(
         partyId,
         team.name,
@@ -90,6 +107,11 @@ export default function TeamSelectionScreen() {
     }
   };
 
+  const handleRejoinExistingTeam = async () => {
+    if (!existingTeam) return;
+    navigation.navigate('PlayerGame', { partyId, teamId: existingTeam.id });
+  };
+
   const handleCreateTeam = async () => {
     if (!newTeamName.trim()) {
       Alert.alert('Error', 'Please enter a team name');
@@ -104,8 +126,8 @@ export default function TeamSelectionScreen() {
     try {
       setJoining(true);
 
-      // First join the party as a player
-      const player = await PartyService.joinParty(
+      // Get or create player (handles existing players gracefully)
+      const player = await PartyService.getOrCreatePlayer(
         partyId,
         user.user_metadata?.display_name || user.email || 'Player',
         user.id
@@ -180,7 +202,7 @@ export default function TeamSelectionScreen() {
     <View style={styles.container}>
       <View style={styles.header}>
         <Text variant="headlineSmall" style={styles.title}>
-          Join a Team
+          {existingTeam ? 'Rejoin Your Team' : 'Join a Team'}
         </Text>
         <Text variant="bodyLarge" style={styles.subtitle}>
           {party.name}
@@ -190,13 +212,55 @@ export default function TeamSelectionScreen() {
         </Text>
       </View>
 
+      {existingTeam && (
+        <Card style={styles.existingTeamCard}>
+          <Card.Content>
+            <Text variant="titleMedium" style={styles.existingTeamTitle}>
+              Your Team
+            </Text>
+            <View style={styles.teamHeader}>
+              <View style={styles.teamInfo}>
+                <View
+                  style={[styles.colorIndicator, { backgroundColor: existingTeam.color }]}
+                />
+                <Text variant="titleMedium" style={styles.teamName}>
+                  {existingTeam.name}
+                </Text>
+              </View>
+              <Chip mode="outlined" style={styles.scoreChip}>
+                {existingTeam.score} pts
+              </Chip>
+            </View>
+            <Button
+              mode="contained"
+              onPress={handleRejoinExistingTeam}
+              style={styles.rejoinButton}
+              icon="account-group"
+            >
+              Rejoin Team
+            </Button>
+          </Card.Content>
+        </Card>
+      )}
+
+      {existingTeam && (
+        <View style={styles.sectionHeader}>
+          <Text variant="titleMedium" style={styles.sectionTitle}>
+            Other Teams
+          </Text>
+          <Text variant="bodyMedium" style={styles.sectionSubtitle}>
+            You can switch teams if you want
+          </Text>
+        </View>
+      )}
+
       {teams.length === 0 ? (
         <View style={styles.emptyState}>
           <Text variant="titleMedium" style={styles.emptyTitle}>
-            No teams yet!
+            {existingTeam ? 'No other teams yet!' : 'No teams yet!'}
           </Text>
           <Text variant="bodyMedium" style={styles.emptySubtitle}>
-            Be the first to create a team for this party
+            {existingTeam ? 'You can create a new team if you want to switch' : 'Be the first to create a team for this party'}
           </Text>
         </View>
       ) : (
@@ -289,6 +353,32 @@ const styles = StyleSheet.create({
   partyCode: {
     color: '#6366f1',
     fontWeight: 'bold',
+  },
+  existingTeamCard: {
+    margin: 16,
+    backgroundColor: '#f0f9ff',
+    borderWidth: 2,
+    borderColor: '#0ea5e9',
+    elevation: 3,
+  },
+  existingTeamTitle: {
+    color: '#0c4a6e',
+    marginBottom: 12,
+  },
+  rejoinButton: {
+    marginTop: 12,
+    backgroundColor: '#0ea5e9',
+  },
+  sectionHeader: {
+    padding: 16,
+    paddingBottom: 8,
+  },
+  sectionTitle: {
+    color: '#1f2937',
+    marginBottom: 4,
+  },
+  sectionSubtitle: {
+    color: '#6b7280',
   },
   listContainer: {
     padding: 16,
