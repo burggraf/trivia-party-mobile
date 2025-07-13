@@ -46,29 +46,49 @@ export default function PlayerPartyScreen() {
   useEffect(() => {
     loadGameData();
     
+    console.log('PlayerPartyScreen: Setting up broadcast subscription for party:', partyId);
+    
     // Set up Realtime broadcast subscriptions
     const partySubscription = supabase
       .channel(`party-${partyId}`)
       .on('broadcast', { event: 'game_started' }, (payload) => {
-        console.log('PlayerPartyScreen: Game started broadcast:', payload);
+        console.log('PlayerPartyScreen: Game started broadcast received:', payload);
         handleGameStarted();
       })
       .on('broadcast', { event: 'new_question' }, (payload) => {
-        console.log('PlayerPartyScreen: New question broadcast:', payload);
+        console.log('PlayerPartyScreen: New question broadcast received:', payload);
         handleNewQuestionBroadcast(payload.payload);
       })
       .on('broadcast', { event: 'game_ended' }, (payload) => {
-        console.log('PlayerPartyScreen: Game ended broadcast:', payload);
+        console.log('PlayerPartyScreen: Game ended broadcast received:', payload);
         handleGameEnded();
       })
       .on('broadcast', { event: 'team_score_updated' }, (payload) => {
-        console.log('PlayerPartyScreen: Team score updated:', payload);
+        console.log('PlayerPartyScreen: Team score updated broadcast received:', payload);
         handleTeamScoreUpdate(payload.payload);
       })
-      .subscribe();
+      .subscribe((status) => {
+        console.log('PlayerPartyScreen: Subscription status:', status);
+      });
+
+    // Fallback polling mechanism in case broadcast fails
+    const pollInterval = setInterval(async () => {
+      if (gameStatus === 'waiting') {
+        try {
+          const currentParty = await PartyService.getPartyById(partyId);
+          if (currentParty?.status === 'active') {
+            console.log('PlayerPartyScreen: Fallback detected game started');
+            handleGameStarted();
+          }
+        } catch (error) {
+          console.error('PlayerPartyScreen: Fallback polling error:', error);
+        }
+      }
+    }, 2000); // Poll every 2 seconds as fallback
 
     return () => {
       supabase.removeChannel(partySubscription);
+      clearInterval(pollInterval);
     };
   }, [partyId, teamId]);
 

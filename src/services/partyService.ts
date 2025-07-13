@@ -332,34 +332,46 @@ export class PartyService {
 
   // Broadcast game events
   static async broadcastGameStarted(partyId: string) {
-    await supabase.channel(`party-${partyId}`).send({
+    console.log('PartyService: Broadcasting game started for party:', partyId);
+    const channel = supabase.channel(`party-${partyId}`);
+    const result = await channel.send({
       type: 'broadcast',
       event: 'game_started',
       payload: { partyId }
     });
+    console.log('PartyService: Game started broadcast result:', result);
   }
 
   static async broadcastNewQuestion(partyId: string, roundId: string, questionOrder: number) {
-    await supabase.channel(`party-${partyId}`).send({
+    console.log('PartyService: Broadcasting new question for party:', partyId, 'round:', roundId, 'question:', questionOrder);
+    const channel = supabase.channel(`party-${partyId}`);
+    const result = await channel.send({
       type: 'broadcast',
       event: 'new_question',
       payload: { roundId, questionOrder }
     });
+    console.log('PartyService: New question broadcast result:', result);
   }
 
   static async broadcastGameEnded(partyId: string) {
-    await supabase.channel(`party-${partyId}`).send({
+    console.log('PartyService: Broadcasting game ended for party:', partyId);
+    const channel = supabase.channel(`party-${partyId}`);
+    const result = await channel.send({
       type: 'broadcast',
       event: 'game_ended',
       payload: { partyId }
     });
+    console.log('PartyService: Game ended broadcast result:', result);
   }
 
   static async broadcastTeamScoreUpdate(partyId: string, team: Team) {
-    await supabase.channel(`party-${partyId}`).send({
+    console.log('PartyService: Broadcasting team score update for party:', partyId, 'team:', team.id);
+    const channel = supabase.channel(`party-${partyId}`);
+    const result = await channel.send({
       type: 'broadcast',
       event: 'team_score_updated',
       payload: team
     });
+    console.log('PartyService: Team score broadcast result:', result);
   }
 }
