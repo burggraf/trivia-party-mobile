@@ -96,8 +96,8 @@ export class PartyService {
     const { error } = await supabase.rpc('select_questions_for_round', {
       round_uuid: roundId,
       categories_array: categories,
-      difficulty_level: difficulty,
-      question_count_param: questionCount,
+      difficulty_level: difficulty || null,
+      question_count_param: questionCount || 10,
     });
 
     if (error) throw error;

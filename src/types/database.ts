@@ -187,7 +187,7 @@ export interface Database {
           id: string;
           party_id: string;
           round_id: string;
-          question_id: string;
+          question_id: string; // TEXT type to match existing questions table
           question_order: number;
           points: number;
           time_limit: number | null;
@@ -197,7 +197,7 @@ export interface Database {
           id?: string;
           party_id: string;
           round_id: string;
-          question_id: string;
+          question_id: string; // TEXT type to match existing questions table
           question_order: number;
           points?: number;
           time_limit?: number | null;
@@ -207,7 +207,7 @@ export interface Database {
           id?: string;
           party_id?: string;
           round_id?: string;
-          question_id?: string;
+          question_id?: string; // TEXT type to match existing questions table
           question_order?: number;
           points?: number;
           time_limit?: number | null;
