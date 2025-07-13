@@ -51,24 +51,30 @@ export default function HostPartyScreen() {
 
       // Load first round's first question if game is active
       if (currentParty?.status === 'active' && roundsData.length > 0) {
-        const firstQuestion = await loadCurrentQuestion(roundsData[0].id, 1);
-        // Initialize game state if not already set
-        await PartyService.updateGameState(partyId, roundsData[0].id, 1);
-        
-        // Broadcast the first question to players who just joined
-        if (firstQuestion) {
-          const questionWithRoundName = {
-            ...firstQuestion,
-            round_name: roundsData[0].name
-          };
-          console.log('HostPartyScreen: Broadcasting first question:', questionWithRoundName);
-          await PartyService.broadcastQuestionToPlayers(partyId, questionWithRoundName);
+        try {
+          const firstQuestion = await loadCurrentQuestion(roundsData[0].id, 1);
+          
+          // Initialize game state if not already set
+          await PartyService.updateGameState(partyId, roundsData[0].id, 1);
+          
+          // Broadcast the first question to players who just joined
+          if (firstQuestion) {
+            const questionWithRoundName = {
+              ...firstQuestion,
+              round_name: roundsData[0].name
+            };
+            console.log('HostPartyScreen: Broadcasting first question:', questionWithRoundName);
+            await PartyService.broadcastQuestionToPlayers(partyId, questionWithRoundName);
+          }
+          
+          setGameState(prev => ({
+            ...prev,
+            totalQuestions: roundsData[0].question_count,
+          }));
+        } catch (error) {
+          console.error('HostPartyScreen: Error setting up active game:', error);
+          // Continue loading even if broadcast fails
         }
-        
-        setGameState(prev => ({
-          ...prev,
-          totalQuestions: roundsData[0].question_count,
-        }));
       }
     } catch (error) {
       console.error('Error loading game data:', error);
@@ -143,8 +149,13 @@ export default function HostPartyScreen() {
     }
   };
 
-  const handleShowResults = () => {
+  const handleShowResults = async () => {
     setGameState(prev => ({ ...prev, isShowingResults: true }));
+    
+    // Broadcast question results to players
+    if (currentQuestion) {
+      await PartyService.broadcastQuestionResults(partyId, currentQuestion);
+    }
   };
 
   const handleEndGame = async () => {

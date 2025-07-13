@@ -353,6 +353,9 @@ export class PartyService {
         payload: { partyId }
       });
       console.log('PartyService: Game started broadcast result:', result);
+      
+      // Clean up channel
+      supabase.removeChannel(channel);
     } catch (error) {
       console.error('PartyService: Error broadcasting game started:', error);
     }
@@ -374,23 +377,31 @@ export class PartyService {
         });
       });
 
+      const payload = {
+        party_question_id: questionData.id,
+        question: questionData.questions.question,
+        option_a: questionData.questions.a,
+        option_b: questionData.questions.b,
+        option_c: questionData.questions.c,
+        option_d: questionData.questions.d,
+        category: questionData.questions.category,
+        difficulty: questionData.questions.difficulty,
+        round_name: questionData.round_name,
+        question_number: questionData.question_order
+      };
+
+      console.log('PartyService: Sending question payload:', payload);
+      
       const result = await channel.send({
         type: 'broadcast',
         event: 'question_data',
-        payload: {
-          party_question_id: questionData.id,
-          question: questionData.questions.question,
-          option_a: questionData.questions.a,
-          option_b: questionData.questions.b,
-          option_c: questionData.questions.c,
-          option_d: questionData.questions.d,
-          category: questionData.questions.category,
-          difficulty: questionData.questions.difficulty,
-          round_name: questionData.round_name,
-          question_number: questionData.question_order
-        }
+        payload: payload
       });
+      
       console.log('PartyService: Question broadcast result:', result);
+      
+      // Clean up channel
+      supabase.removeChannel(channel);
     } catch (error) {
       console.error('PartyService: Error broadcasting question:', error);
     }
@@ -410,6 +421,44 @@ export class PartyService {
       console.log('PartyService: Game ended broadcast result:', result);
     } catch (error) {
       console.error('PartyService: Error broadcasting game ended:', error);
+    }
+  }
+
+  static async broadcastQuestionResults(partyId: string, questionData: any) {
+    console.log('PartyService: Broadcasting question results for party:', partyId);
+    try {
+      const channelName = `party-${partyId}`;
+      const channel = supabase.channel(channelName);
+      
+      // Subscribe to the channel first to ensure it exists
+      await new Promise((resolve) => {
+        channel.subscribe((status) => {
+          console.log('PartyService: Broadcast channel status for results:', status);
+          if (status === 'SUBSCRIBED') {
+            resolve(true);
+          }
+        });
+      });
+
+      const result = await channel.send({
+        type: 'broadcast',
+        event: 'question_results',
+        payload: {
+          party_question_id: questionData.id,
+          correct_answer: 'a', // 'a' is always correct in our schema
+          question: questionData.questions.question,
+          option_a: questionData.questions.a,
+          option_b: questionData.questions.b,
+          option_c: questionData.questions.c,
+          option_d: questionData.questions.d
+        }
+      });
+      console.log('PartyService: Question results broadcast result:', result);
+      
+      // Clean up channel
+      supabase.removeChannel(channel);
+    } catch (error) {
+      console.error('PartyService: Error broadcasting question results:', error);
     }
   }
 

@@ -50,8 +50,9 @@ $$ LANGUAGE plpgsql;
 -- Function to get party leaderboard
 CREATE OR REPLACE FUNCTION get_party_leaderboard(party_uuid UUID)
 RETURNS TABLE (
-    team_id UUID,
-    team_name TEXT,
+    id UUID,
+    name TEXT,
+    color TEXT,
     score INTEGER,
     rank INTEGER
 ) AS $$
@@ -60,6 +61,7 @@ BEGIN
     SELECT 
         t.id,
         t.name,
+        t.color,
         t.score,
         ROW_NUMBER() OVER (ORDER BY t.score DESC)::INTEGER as rank
     FROM teams t

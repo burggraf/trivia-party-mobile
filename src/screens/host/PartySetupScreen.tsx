@@ -130,6 +130,25 @@ export default function PartySetupScreen() {
     try {
       await PartyService.updatePartyStatus(partyId, 'active');
       await PartyService.broadcastGameStarted(partyId);
+      
+      // Give players time to receive game_started and set up for questions
+      setTimeout(async () => {
+        try {
+          // Get and broadcast the first question
+          const firstQuestion = await PartyService.getCurrentQuestion(rounds[0].id, 1);
+          if (firstQuestion) {
+            const questionWithRoundName = {
+              ...firstQuestion,
+              round_name: rounds[0].name
+            };
+            console.log('PartySetupScreen: Broadcasting first question after delay:', questionWithRoundName);
+            await PartyService.broadcastQuestionToPlayers(partyId, questionWithRoundName);
+          }
+        } catch (error) {
+          console.error('Error broadcasting first question:', error);
+        }
+      }, 2000); // 2 second delay to ensure player subscriptions are ready
+      
       navigation.navigate('HostParty', { partyId });
     } catch (error) {
       console.error('Error starting party:', error);

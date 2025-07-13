@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { View, StyleSheet, ScrollView, Alert } from 'react-native';
-import { Text, Card, Button, RadioButton } from 'react-native-paper';
+import { Text, Card, Button } from 'react-native-paper';
 import { useRoute } from '@react-navigation/native';
 import { PartyService } from '../../services/partyService';
 import { Database } from '../../types/database';
@@ -44,6 +44,8 @@ export default function PlayerPartyScreen() {
   const [leaderboard, setLeaderboard] = useState<any[]>([]);
   const [currentQuestionId, setCurrentQuestionId] = useState<string | null>(null);
   const [subscriptionStatus, setSubscriptionStatus] = useState<string>('connecting');
+  const [showingResults, setShowingResults] = useState(false);
+  const [correctAnswer, setCorrectAnswer] = useState<'a' | 'b' | 'c' | 'd' | null>(null);
 
   useEffect(() => {
     loadGameData();
@@ -60,6 +62,10 @@ export default function PlayerPartyScreen() {
       .on('broadcast', { event: 'question_data' }, (payload) => {
         console.log('PlayerPartyScreen: Question data broadcast received:', payload);
         handleQuestionDataBroadcast(payload.payload);
+      })
+      .on('broadcast', { event: 'question_results' }, (payload) => {
+        console.log('PlayerPartyScreen: Question results broadcast received:', payload);
+        handleQuestionResults(payload.payload);
       })
       .on('broadcast', { event: 'game_ended' }, (payload) => {
         console.log('PlayerPartyScreen: Game ended broadcast received:', payload);
@@ -93,7 +99,8 @@ export default function PlayerPartyScreen() {
 
       if (currentParty?.status === 'active') {
         setGameStatus('active');
-        await loadCurrentQuestion();
+        // For active games, we rely on broadcasts for questions
+        // No need to load current question manually
       } else if (currentParty?.status === 'completed') {
         setGameStatus('completed');
         loadLeaderboard();
@@ -131,6 +138,8 @@ export default function PlayerPartyScreen() {
     // Reset answer state for new question
     setSelectedAnswer(null);
     setHasAnswered(false);
+    setShowingResults(false);
+    setCorrectAnswer(null);
     
     console.log('PlayerPartyScreen: Question set successfully:', {
       party_question_id: questionData.party_question_id,
@@ -142,6 +151,12 @@ export default function PlayerPartyScreen() {
         d: questionData.option_d
       }
     });
+  };
+
+  const handleQuestionResults = (resultsData: any) => {
+    console.log('PlayerPartyScreen: Showing question results:', resultsData);
+    setCorrectAnswer(resultsData.correct_answer);
+    setShowingResults(true);
   };
 
   const handleGameEnded = () => {
@@ -196,17 +211,11 @@ export default function PlayerPartyScreen() {
     }
   };
 
-  const handleSubmitAnswer = async () => {
-    console.log('PlayerPartyScreen: Submit attempt:', {
-      selectedAnswer,
-      currentQuestion: !!currentQuestion,
-      team: !!team,
-      party_question_id: currentQuestion?.party_question_id
-    });
+  const handleAnswerSelect = async (answer: 'a' | 'b' | 'c' | 'd') => {
+    console.log('PlayerPartyScreen: Answer selected:', answer);
     
-    if (!selectedAnswer) {
-      Alert.alert('Error', 'Please select an answer');
-      return;
+    if (hasAnswered || submitting) {
+      return; // Prevent double submission
     }
     
     if (!currentQuestion || !currentQuestion.party_question_id) {
@@ -221,20 +230,15 @@ export default function PlayerPartyScreen() {
 
     try {
       setSubmitting(true);
+      setSelectedAnswer(answer);
 
       const isCorrect = await PartyService.submitAnswer(
         currentQuestion.party_question_id, 
         team.id, 
-        selectedAnswer
+        answer
       );
 
       setHasAnswered(true);
-      
-      const resultMessage = isCorrect 
-        ? "Correct! Your team earned points." 
-        : "Answer submitted. Wait for results!";
-        
-      Alert.alert('Answer Submitted!', resultMessage);
       
       // Refresh team score
       const updatedTeams = await PartyService.getPartyTeams(partyId);
@@ -245,10 +249,13 @@ export default function PlayerPartyScreen() {
     } catch (error: any) {
       console.error('Error submitting answer:', error);
       Alert.alert('Error', error.message || 'Failed to submit answer');
+      // Reset state on error
+      setSelectedAnswer(null);
     } finally {
       setSubmitting(false);
     }
   };
+
 
   const renderWaitingScreen = () => (
     <View style={styles.centerContainer}>
@@ -327,46 +334,54 @@ export default function PlayerPartyScreen() {
             Select your answer:
           </Text>
 
-          <RadioButton.Group
-            onValueChange={(value) =>
-              setSelectedAnswer(value as 'a' | 'b' | 'c' | 'd')
-            }
-            value={selectedAnswer || ''}
-          >
-            {['a', 'b', 'c', 'd'].map((option) => (
-              <View key={option} style={styles.answerOption}>
-                <RadioButton
-                  value={option}
-                  disabled={hasAnswered}
-                  color="#6366f1"
-                />
-                <Text variant="bodyLarge" style={styles.answerText}>
-                  {currentQuestion?.[`option_${option}` as keyof CurrentQuestion] || `Option ${option.toUpperCase()} text missing`}
-                </Text>
-              </View>
-            ))}
-          </RadioButton.Group>
-
-          {!hasAnswered && (
-            <Button
-              mode="contained"
-              onPress={handleSubmitAnswer}
-              loading={submitting}
-              disabled={submitting || !selectedAnswer}
-              style={styles.submitButton}
-            >
-              Submit Answer
-            </Button>
-          )}
+          <View style={styles.answerButtonsContainer}>
+            {['a', 'b', 'c', 'd'].map((option) => {
+              const isCorrect = showingResults && correctAnswer === option;
+              const isSelected = selectedAnswer === option;
+              const isWrong = showingResults && isSelected && !isCorrect;
+              
+              let buttonStyle = styles.answerButton;
+              let textStyle = styles.answerButtonText;
+              
+              if (isSelected && !showingResults) {
+                buttonStyle = [styles.answerButton, styles.selectedAnswerButton];
+                textStyle = [styles.answerButtonText, styles.selectedAnswerButtonText];
+              } else if (isCorrect) {
+                buttonStyle = [styles.answerButton, styles.correctAnswerButton];
+                textStyle = [styles.answerButtonText, styles.correctAnswerButtonText];
+              } else if (isWrong) {
+                buttonStyle = [styles.answerButton, styles.wrongAnswerButton];
+                textStyle = [styles.answerButtonText, styles.wrongAnswerButtonText];
+              }
+              
+              return (
+                <Button
+                  key={option}
+                  mode="outlined"
+                  onPress={() => handleAnswerSelect(option as 'a' | 'b' | 'c' | 'd')}
+                  disabled={hasAnswered || showingResults || submitting}
+                  style={buttonStyle}
+                  labelStyle={textStyle}
+                  loading={submitting && selectedAnswer === option}
+                >
+                  {option.toUpperCase()}. {currentQuestion?.[`option_${option}` as keyof CurrentQuestion] || `Option ${option.toUpperCase()} text missing`}
+                </Button>
+              );
+            })}
+          </View>
 
           {hasAnswered && (
             <Card style={styles.submittedCard}>
               <Card.Content>
                 <Text variant="bodyMedium" style={styles.submittedText}>
-                  ✓ Answer submitted! Waiting for next question...
+                  {showingResults 
+                    ? "✓ Results shown! Waiting for next question..." 
+                    : "✓ Answer submitted! Waiting for results..."}
                 </Text>
                 <Text variant="bodySmall" style={styles.submittedHint}>
-                  ⚡ You'll be notified instantly when the next question appears!
+                  {showingResults 
+                    ? "⚡ You'll be notified instantly when the next question appears!"
+                    : "⚡ The host will show results shortly!"}
                 </Text>
                 
                 <Button
@@ -566,22 +581,49 @@ const styles = StyleSheet.create({
     color: '#1f2937',
     marginBottom: 16,
   },
-  answerOption: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginBottom: 12,
-    padding: 8,
-    backgroundColor: '#f9fafb',
+  answerButtonsContainer: {
+    gap: 12,
+  },
+  answerButton: {
+    marginBottom: 8,
     borderRadius: 8,
-  },
-  answerText: {
-    color: '#1f2937',
-    marginLeft: 8,
-    flex: 1,
-  },
-  submitButton: {
-    marginTop: 16,
+    backgroundColor: '#ffffff',
+    borderColor: '#d1d5db',
+    borderWidth: 1,
     paddingVertical: 8,
+  },
+  answerButtonText: {
+    color: '#1f2937',
+    fontSize: 16,
+    textAlign: 'left',
+    paddingVertical: 4,
+  },
+  selectedAnswerButton: {
+    backgroundColor: '#e0e7ff',
+    borderColor: '#6366f1',
+    borderWidth: 2,
+  },
+  selectedAnswerButtonText: {
+    color: '#6366f1',
+    fontWeight: 'bold',
+  },
+  correctAnswerButton: {
+    backgroundColor: '#dcfce7',
+    borderColor: '#16a34a',
+    borderWidth: 2,
+  },
+  correctAnswerButtonText: {
+    color: '#16a34a',
+    fontWeight: 'bold',
+  },
+  wrongAnswerButton: {
+    backgroundColor: '#fef2f2',
+    borderColor: '#dc2626',
+    borderWidth: 2,
+  },
+  wrongAnswerButtonText: {
+    color: '#dc2626',
+    fontWeight: 'bold',
   },
   submittedCard: {
     marginTop: 16,
