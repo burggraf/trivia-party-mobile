@@ -43,8 +43,16 @@ export default function PlayerPartyScreen() {
 
   useEffect(() => {
     loadGameData();
-    // TODO: Set up real-time subscriptions for game state changes
-  }, [partyId, teamId]);
+    
+    // Set up polling for game state changes
+    const pollInterval = setInterval(() => {
+      if (gameStatus === 'waiting') {
+        checkGameStatus();
+      }
+    }, 3000); // Poll every 3 seconds when waiting
+    
+    return () => clearInterval(pollInterval);
+  }, [partyId, teamId, gameStatus]);
 
   const loadGameData = async () => {
     try {
@@ -70,6 +78,25 @@ export default function PlayerPartyScreen() {
       Alert.alert('Error', 'Failed to load game information');
     } finally {
       setLoading(false);
+    }
+  };
+
+  const checkGameStatus = async () => {
+    try {
+      const currentParty = await PartyService.getPartyById(partyId);
+      if (currentParty?.status === 'active' && gameStatus === 'waiting') {
+        setGameStatus('active');
+        await loadCurrentQuestion();
+        // Refresh team data
+        const teams = await PartyService.getPartyTeams(partyId);
+        const currentTeam = teams.find((t) => t.id === teamId);
+        setTeam(currentTeam || null);
+      } else if (currentParty?.status === 'completed') {
+        setGameStatus('completed');
+        loadLeaderboard();
+      }
+    } catch (error) {
+      console.error('Error checking game status:', error);
     }
   };
 
@@ -168,6 +195,9 @@ export default function PlayerPartyScreen() {
           <Text variant="bodyMedium" style={styles.statusDescription}>
             The host will start the game when all teams are ready. Get
             comfortable and prepare for some trivia fun!
+          </Text>
+          <Text variant="bodySmall" style={styles.statusHint}>
+            🔄 Checking for updates every few seconds...
           </Text>
         </Card.Content>
       </Card>
@@ -370,6 +400,12 @@ const styles = StyleSheet.create({
     color: '#6b7280',
     textAlign: 'center',
     lineHeight: 20,
+  },
+  statusHint: {
+    color: '#9ca3af',
+    textAlign: 'center',
+    marginTop: 8,
+    fontStyle: 'italic',
   },
   teamInfoCard: {
     elevation: 2,
