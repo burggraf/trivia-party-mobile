@@ -6,7 +6,7 @@ import { StackNavigationProp } from '@react-navigation/stack';
 import { HostStackParamList } from '../../navigation/HostNavigator';
 import { PartyService } from '../../services/partyService';
 import { Database } from '../../types/database';
-import AddRoundModal from '../../components/host/AddRoundModal';
+import SimpleAddRoundModal from '../../components/host/SimpleAddRoundModal';
 
 type Party = Database['public']['Tables']['parties']['Row'];
 type Round = Database['public']['Tables']['rounds']['Row'];
@@ -22,15 +22,22 @@ export default function PartySetupScreen() {
   const [loading, setLoading] = useState(true);
   const [showAddRoundModal, setShowAddRoundModal] = useState(false);
 
+  const handleShowModal = () => {
+    setShowAddRoundModal(true);
+  };
+
+  const handleHideModal = () => {
+    setShowAddRoundModal(false);
+  };
+
   const loadPartyData = async () => {
     try {
-      const [partyData, roundsData] = await Promise.all([
-        PartyService.getUserParties(),
+      const [currentParty, roundsData] = await Promise.all([
+        PartyService.getPartyById(partyId),
         PartyService.getPartyRounds(partyId),
       ]);
 
-      const currentParty = partyData.find((p) => p.id === partyId);
-      setParty(currentParty || null);
+      setParty(currentParty);
       setRounds(roundsData);
     } catch (error) {
       console.error('Error loading party data:', error);
@@ -45,16 +52,18 @@ export default function PartySetupScreen() {
 
   const handleAddRound = async (roundData: any) => {
     try {
-      const newRound = await PartyService.addRound({
+      const insertData = {
         party_id: partyId,
         round_number: rounds.length + 1,
         ...roundData,
-      });
-
+      };
+      
+      const newRound = await PartyService.addRound(insertData);
       setRounds([...rounds, newRound]);
-      setShowAddRoundModal(false);
+      handleHideModal();
     } catch (error) {
       console.error('Error adding round:', error);
+      alert(`Error adding round: ${error.message || 'Unknown error'}`);
     }
   };
 
@@ -196,13 +205,13 @@ export default function PartySetupScreen() {
         <FAB
           icon="plus"
           style={styles.fab}
-          onPress={() => setShowAddRoundModal(true)}
+          onPress={handleShowModal}
         />
       )}
 
-      <AddRoundModal
+      <SimpleAddRoundModal
         visible={showAddRoundModal}
-        onDismiss={() => setShowAddRoundModal(false)}
+        onDismiss={handleHideModal}
         onAdd={handleAddRound}
       />
     </View>

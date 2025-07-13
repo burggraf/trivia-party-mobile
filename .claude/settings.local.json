@@ -12,7 +12,9 @@
       "Bash(npm run lint)",
       "Bash(npm start:*)",
       "Bash(npx expo start:*)",
-      "Bash(find:*)"
+      "Bash(find:*)",
+      "Bash(npx expo install:*)",
+      "Bash(npm uninstall:*)"
     ]
   },
   "enableAllProjectMcpServers": true,

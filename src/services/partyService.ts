@@ -43,11 +43,34 @@ export class PartyService {
     return data;
   }
 
-  // Get parties for current user (as host or player)
-  static async getUserParties(): Promise<Party[]> {
+  // Get party by ID
+  static async getPartyById(partyId: string): Promise<Party | null> {
     const { data, error } = await supabase
       .from('parties')
       .select('*')
+      .eq('id', partyId)
+      .single();
+
+    if (error) {
+      if (error.code === 'PGRST116') return null; // No rows returned
+      throw error;
+    }
+    return data;
+  }
+
+  // Get parties for current user (as host)
+  static async getUserParties(): Promise<Party[]> {
+    const { data: user } = await supabase.auth.getUser();
+    
+    if (!user.user) {
+      return [];
+    }
+
+    // For now, only get parties where user is the host to avoid RLS recursion
+    const { data, error } = await supabase
+      .from('parties')
+      .select('*')
+      .eq('host_id', user.user.id)
       .order('created_at', { ascending: false });
 
     if (error) throw error;
