@@ -119,11 +119,29 @@ export default function PlayerPartyScreen() {
 
   const handleQuestionDataBroadcast = (questionData: any) => {
     console.log('PlayerPartyScreen: Setting question data from broadcast:', questionData);
+    
+    // Validate question data
+    if (!questionData || !questionData.party_question_id || !questionData.question) {
+      console.error('PlayerPartyScreen: Invalid question data received:', questionData);
+      return;
+    }
+    
     setCurrentQuestion(questionData);
     setCurrentQuestionId(questionData.party_question_id);
     // Reset answer state for new question
     setSelectedAnswer(null);
     setHasAnswered(false);
+    
+    console.log('PlayerPartyScreen: Question set successfully:', {
+      party_question_id: questionData.party_question_id,
+      question: questionData.question,
+      options: {
+        a: questionData.option_a,
+        b: questionData.option_b,
+        c: questionData.option_c,
+        d: questionData.option_d
+      }
+    });
   };
 
   const handleGameEnded = () => {
@@ -179,8 +197,25 @@ export default function PlayerPartyScreen() {
   };
 
   const handleSubmitAnswer = async () => {
-    if (!selectedAnswer || !currentQuestion || !team) {
+    console.log('PlayerPartyScreen: Submit attempt:', {
+      selectedAnswer,
+      currentQuestion: !!currentQuestion,
+      team: !!team,
+      party_question_id: currentQuestion?.party_question_id
+    });
+    
+    if (!selectedAnswer) {
       Alert.alert('Error', 'Please select an answer');
+      return;
+    }
+    
+    if (!currentQuestion || !currentQuestion.party_question_id) {
+      Alert.alert('Error', 'No question available');
+      return;
+    }
+    
+    if (!team) {
+      Alert.alert('Error', 'Team not found');
       return;
     }
 

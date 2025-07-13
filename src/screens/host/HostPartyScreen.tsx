@@ -51,16 +51,17 @@ export default function HostPartyScreen() {
 
       // Load first round's first question if game is active
       if (currentParty?.status === 'active' && roundsData.length > 0) {
-        await loadCurrentQuestion(roundsData[0].id, 1);
+        const firstQuestion = await loadCurrentQuestion(roundsData[0].id, 1);
         // Initialize game state if not already set
         await PartyService.updateGameState(partyId, roundsData[0].id, 1);
         
         // Broadcast the first question to players who just joined
-        if (currentQuestion) {
+        if (firstQuestion) {
           const questionWithRoundName = {
-            ...currentQuestion,
+            ...firstQuestion,
             round_name: roundsData[0].name
           };
+          console.log('HostPartyScreen: Broadcasting first question:', questionWithRoundName);
           await PartyService.broadcastQuestionToPlayers(partyId, questionWithRoundName);
         }
         
@@ -81,8 +82,10 @@ export default function HostPartyScreen() {
     try {
       const question = await PartyService.getCurrentQuestion(roundId, questionOrder);
       setCurrentQuestion(question);
+      return question;
     } catch (error) {
       console.error('Error loading current question:', error);
+      return null;
     }
   };
 
@@ -94,14 +97,15 @@ export default function HostPartyScreen() {
     
     if (nextQuestionNum <= currentRound.question_count) {
       // Move to next question in current round
-      await loadCurrentQuestion(currentRound.id, nextQuestionNum);
+      const nextQuestion = await loadCurrentQuestion(currentRound.id, nextQuestionNum);
       
       // Broadcast the full question data to players
-      if (currentQuestion) {
+      if (nextQuestion) {
         const questionWithRoundName = {
-          ...currentQuestion,
+          ...nextQuestion,
           round_name: currentRound.name
         };
+        console.log('HostPartyScreen: Broadcasting next question:', questionWithRoundName);
         await PartyService.broadcastQuestionToPlayers(partyId, questionWithRoundName);
       }
       
@@ -114,14 +118,15 @@ export default function HostPartyScreen() {
       // Check if there's a next round
       if (gameState.currentRound < rounds.length) {
         const nextRound = rounds[gameState.currentRound];
-        await loadCurrentQuestion(nextRound.id, 1);
+        const nextQuestion = await loadCurrentQuestion(nextRound.id, 1);
         
         // Broadcast the full question data to players
-        if (currentQuestion) {
+        if (nextQuestion) {
           const questionWithRoundName = {
-            ...currentQuestion,
+            ...nextQuestion,
             round_name: nextRound.name
           };
+          console.log('HostPartyScreen: Broadcasting next round question:', questionWithRoundName);
           await PartyService.broadcastQuestionToPlayers(partyId, questionWithRoundName);
         }
         
