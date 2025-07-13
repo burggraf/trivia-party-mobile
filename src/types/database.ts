@@ -245,7 +245,50 @@ export interface Database {
       [_ in never]: never;
     };
     Functions: {
-      [_ in never]: never;
+      generate_join_code: {
+        Args: Record<PropertyKey, never>;
+        Returns: string;
+      };
+      calculate_team_score: {
+        Args: {
+          team_uuid: string;
+        };
+        Returns: number;
+      };
+      get_party_leaderboard: {
+        Args: {
+          party_uuid: string;
+        };
+        Returns: {
+          team_id: string;
+          team_name: string;
+          score: number;
+          rank: number;
+        }[];
+      };
+      select_questions_for_round: {
+        Args: {
+          round_uuid: string;
+          categories_array: string[];
+          difficulty_level?: string;
+          question_count_param?: number;
+        };
+        Returns: undefined;
+      };
+      all_teams_answered: {
+        Args: {
+          party_question_uuid: string;
+        };
+        Returns: boolean;
+      };
+      submit_team_answer: {
+        Args: {
+          party_question_uuid: string;
+          team_uuid: string;
+          selected_answer_param: 'a' | 'b' | 'c' | 'd';
+        };
+        Returns: boolean;
+      };
     };
     Enums: {
       [_ in never]: never;
