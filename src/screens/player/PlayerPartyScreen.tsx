@@ -12,10 +12,10 @@ interface CurrentQuestion {
   id: string;
   party_question_id: string;
   question: string;
-  option_a: string;
-  option_b: string;
-  option_c: string;
-  option_d: string;
+  a: string;
+  b: string;
+  c: string;
+  d: string;
   category: string;
   difficulty: string;
 }
@@ -83,16 +83,24 @@ export default function PlayerPartyScreen() {
         const question = await PartyService.getCurrentQuestion(firstRound.id, 1);
         
         if (question && question.questions) {
+          console.log('PlayerPartyScreen: Raw question data:', question.questions);
           setCurrentQuestion({
             id: question.questions.id,
             party_question_id: question.id,
             question: question.questions.question,
-            option_a: question.questions.option_a,
-            option_b: question.questions.option_b,
-            option_c: question.questions.option_c,
-            option_d: question.questions.option_d,
+            a: question.questions.a,
+            b: question.questions.b,
+            c: question.questions.c,
+            d: question.questions.d,
             category: question.questions.category,
             difficulty: question.questions.difficulty,
+          });
+          console.log('PlayerPartyScreen: Set current question:', {
+            question: question.questions.question,
+            a: question.questions.a,
+            b: question.questions.b,
+            c: question.questions.c,
+            d: question.questions.d,
           });
         }
       }
@@ -224,11 +232,7 @@ export default function PlayerPartyScreen() {
                   color="#6366f1"
                 />
                 <Text variant="bodyLarge" style={styles.answerText}>
-                  {
-                    currentQuestion?.[
-                      `option_${option}` as keyof CurrentQuestion
-                    ]
-                  }
+                  {currentQuestion?.[option as keyof CurrentQuestion] || `Option ${option.toUpperCase()} text missing`}
                 </Text>
               </View>
             ))}

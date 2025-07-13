@@ -223,7 +223,7 @@ export default function HostPartyScreen() {
                   {option.toUpperCase()}.
                 </Text>
                 <Text variant="bodyMedium" style={styles.answerText}>
-                  {currentQuestion.questions?.[`option_${option}`]}
+                  {currentQuestion.questions?.[option]}
                 </Text>
               </View>
             ))}
