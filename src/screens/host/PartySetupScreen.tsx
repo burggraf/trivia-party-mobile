@@ -129,6 +129,7 @@ export default function PartySetupScreen() {
 
     try {
       await PartyService.updatePartyStatus(partyId, 'active');
+      await PartyService.broadcastGameStarted(partyId);
       navigation.navigate('HostParty', { partyId });
     } catch (error) {
       console.error('Error starting party:', error);

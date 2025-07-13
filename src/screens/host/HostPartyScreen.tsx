@@ -52,6 +52,8 @@ export default function HostPartyScreen() {
       // Load first round's first question if game is active
       if (currentParty?.status === 'active' && roundsData.length > 0) {
         await loadCurrentQuestion(roundsData[0].id, 1);
+        // Initialize game state if not already set
+        await PartyService.updateGameState(partyId, roundsData[0].id, 1);
         setGameState(prev => ({
           ...prev,
           totalQuestions: roundsData[0].question_count,
@@ -83,6 +85,7 @@ export default function HostPartyScreen() {
     if (nextQuestionNum <= currentRound.question_count) {
       // Move to next question in current round
       await loadCurrentQuestion(currentRound.id, nextQuestionNum);
+      await PartyService.broadcastNewQuestion(partyId, currentRound.id, nextQuestionNum);
       setGameState(prev => ({
         ...prev,
         currentQuestion: nextQuestionNum,
@@ -93,6 +96,7 @@ export default function HostPartyScreen() {
       if (gameState.currentRound < rounds.length) {
         const nextRound = rounds[gameState.currentRound];
         await loadCurrentQuestion(nextRound.id, 1);
+        await PartyService.broadcastNewQuestion(partyId, nextRound.id, 1);
         setGameState({
           currentRound: gameState.currentRound + 1,
           currentQuestion: 1,
@@ -113,6 +117,7 @@ export default function HostPartyScreen() {
   const handleEndGame = async () => {
     try {
       await PartyService.updatePartyStatus(partyId, 'completed');
+      await PartyService.broadcastGameEnded(partyId);
       Alert.alert('Game Complete!', 'The trivia party has ended. Final results are now available.', [
         {
           text: 'View Results',

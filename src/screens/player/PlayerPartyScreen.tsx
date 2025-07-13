@@ -4,6 +4,7 @@ import { Text, Card, Button, RadioButton } from 'react-native-paper';
 import { useRoute } from '@react-navigation/native';
 import { PartyService } from '../../services/partyService';
 import { Database } from '../../types/database';
+import { supabase } from '../../lib/supabase';
 
 type Party = Database['public']['Tables']['parties']['Row'];
 type Team = Database['public']['Tables']['teams']['Row'];
@@ -45,17 +46,31 @@ export default function PlayerPartyScreen() {
   useEffect(() => {
     loadGameData();
     
-    // Set up polling for game state changes
-    const pollInterval = setInterval(() => {
-      if (gameStatus === 'waiting') {
-        checkGameStatus();
-      } else if (gameStatus === 'active') {
-        checkForNewQuestion();
-      }
-    }, 3000); // Poll every 3 seconds
-    
-    return () => clearInterval(pollInterval);
-  }, [partyId, teamId, gameStatus]);
+    // Set up Realtime broadcast subscriptions
+    const partySubscription = supabase
+      .channel(`party-${partyId}`)
+      .on('broadcast', { event: 'game_started' }, (payload) => {
+        console.log('PlayerPartyScreen: Game started broadcast:', payload);
+        handleGameStarted();
+      })
+      .on('broadcast', { event: 'new_question' }, (payload) => {
+        console.log('PlayerPartyScreen: New question broadcast:', payload);
+        handleNewQuestionBroadcast(payload.payload);
+      })
+      .on('broadcast', { event: 'game_ended' }, (payload) => {
+        console.log('PlayerPartyScreen: Game ended broadcast:', payload);
+        handleGameEnded();
+      })
+      .on('broadcast', { event: 'team_score_updated' }, (payload) => {
+        console.log('PlayerPartyScreen: Team score updated:', payload);
+        handleTeamScoreUpdate(payload.payload);
+      })
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(partySubscription);
+    };
+  }, [partyId, teamId]);
 
   const loadGameData = async () => {
     try {
@@ -84,58 +99,36 @@ export default function PlayerPartyScreen() {
     }
   };
 
-  const checkGameStatus = async () => {
-    try {
-      const currentParty = await PartyService.getPartyById(partyId);
-      if (currentParty?.status === 'active' && gameStatus === 'waiting') {
-        setGameStatus('active');
-        await loadCurrentQuestion();
-        // Refresh team data
-        const teams = await PartyService.getPartyTeams(partyId);
-        const currentTeam = teams.find((t) => t.id === teamId);
-        setTeam(currentTeam || null);
-      } else if (currentParty?.status === 'completed') {
-        setGameStatus('completed');
-        loadLeaderboard();
-      }
-    } catch (error) {
-      console.error('Error checking game status:', error);
+  // Broadcast event handlers
+  const handleGameStarted = async () => {
+    if (gameStatus === 'waiting') {
+      setGameStatus('active');
+      await loadCurrentQuestion();
+      // Refresh team data
+      const teams = await PartyService.getPartyTeams(partyId);
+      const currentTeam = teams.find((t) => t.id === teamId);
+      setTeam(currentTeam || null);
     }
   };
 
-  const checkForNewQuestion = async () => {
-    try {
-      // Simple approach: reload the current question and check if it changed
-      const rounds = await PartyService.getPartyRounds(partyId);
-      if (rounds.length > 0) {
-        // Check if we need to find the latest available question
-        let latestQuestion = null;
-        let latestRoundId = null;
-        let latestQuestionOrder = 0;
-        
-        for (const round of rounds) {
-          for (let questionOrder = 1; questionOrder <= round.question_count; questionOrder++) {
-            try {
-              const question = await PartyService.getCurrentQuestion(round.id, questionOrder);
-              if (question) {
-                latestQuestion = question;
-                latestRoundId = round.id;
-                latestQuestionOrder = questionOrder;
-              }
-            } catch (error) {
-              // Question doesn't exist yet, stop looking in this round
-              break;
-            }
-          }
-        }
-        
-        if (latestQuestion && latestQuestion.id !== currentQuestionId) {
-          console.log('PlayerPartyScreen: New question detected:', latestQuestion.id);
-          await loadSpecificQuestion(latestRoundId!, latestQuestionOrder);
-        }
-      }
-    } catch (error) {
-      console.error('Error checking for new question:', error);
+  const handleNewQuestionBroadcast = async (questionData: any) => {
+    const { roundId, questionOrder } = questionData;
+    const newQuestionId = `${roundId}-${questionOrder}`;
+    
+    if (newQuestionId !== currentQuestionId) {
+      console.log('PlayerPartyScreen: Loading new question from broadcast:', newQuestionId);
+      await loadSpecificQuestion(roundId, questionOrder);
+    }
+  };
+
+  const handleGameEnded = () => {
+    setGameStatus('completed');
+    loadLeaderboard();
+  };
+
+  const handleTeamScoreUpdate = (teamData: any) => {
+    if (teamData.id === team?.id) {
+      setTeam(teamData);
     }
   };
 
@@ -170,7 +163,7 @@ export default function PlayerPartyScreen() {
           category: question.questions.category,
           difficulty: question.questions.difficulty,
         });
-        setCurrentQuestionId(question.id);
+        setCurrentQuestionId(`${targetRoundId}-${targetQuestionOrder}`);
         // Reset answer state for new question
         setSelectedAnswer(null);
         setHasAnswered(false);
@@ -241,7 +234,7 @@ export default function PlayerPartyScreen() {
             comfortable and prepare for some trivia fun!
           </Text>
           <Text variant="bodySmall" style={styles.statusHint}>
-            🔄 Checking for updates every few seconds...
+            ⚡ Connected - you'll be notified instantly when the game starts!
           </Text>
         </Card.Content>
       </Card>
@@ -331,7 +324,7 @@ export default function PlayerPartyScreen() {
                   ✓ Answer submitted! Waiting for next question...
                 </Text>
                 <Text variant="bodySmall" style={styles.submittedHint}>
-                  🔄 Checking for updates every few seconds
+                  ⚡ You'll be notified instantly when the next question appears!
                 </Text>
               </Card.Content>
             </Card>

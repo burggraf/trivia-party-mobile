@@ -295,4 +295,71 @@ export class PartyService {
     if (error) throw error;
     return data || [];
   }
+
+  // Update current game state (for host)
+  static async updateGameState(
+    partyId: string,
+    roundId: string,
+    questionOrder: number
+  ): Promise<void> {
+    const { error } = await supabase
+      .from('parties')
+      .update({
+        current_round_id: roundId,
+        current_question_order: questionOrder,
+        game_state_updated_at: new Date().toISOString(),
+      })
+      .eq('id', partyId);
+
+    if (error) throw error;
+  }
+
+  // Get current game state
+  static async getCurrentGameState(partyId: string) {
+    const { data, error } = await supabase
+      .from('parties')
+      .select(`
+        current_round_id,
+        current_question_order,
+        game_state_updated_at
+      `)
+      .eq('id', partyId)
+      .single();
+
+    if (error) throw error;
+    return data;
+  }
+
+  // Broadcast game events
+  static async broadcastGameStarted(partyId: string) {
+    await supabase.channel(`party-${partyId}`).send({
+      type: 'broadcast',
+      event: 'game_started',
+      payload: { partyId }
+    });
+  }
+
+  static async broadcastNewQuestion(partyId: string, roundId: string, questionOrder: number) {
+    await supabase.channel(`party-${partyId}`).send({
+      type: 'broadcast',
+      event: 'new_question',
+      payload: { roundId, questionOrder }
+    });
+  }
+
+  static async broadcastGameEnded(partyId: string) {
+    await supabase.channel(`party-${partyId}`).send({
+      type: 'broadcast',
+      event: 'game_ended',
+      payload: { partyId }
+    });
+  }
+
+  static async broadcastTeamScoreUpdate(partyId: string, team: Team) {
+    await supabase.channel(`party-${partyId}`).send({
+      type: 'broadcast',
+      event: 'team_score_updated',
+      payload: team
+    });
+  }
 }
