@@ -1,0 +1,22 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(npx create-expo-app:*)",
+      "Bash(cp:*)",
+      "Bash(true)",
+      "Bash(npm install @supabase/supabase-js @react-navigation/native @react-navigation/stack @react-navigation/bottom-tabs react-native-screens react-native-safe-area-context @react-native-async-storage/async-storage react-native-qrcode-scanner react-native-qrcode-svg expo-camera expo-barcode-scanner zustand react-native-paper)",
+      "Bash(mkdir:*)",
+      "Bash(npm install:*)",
+      "Bash(touch:*)",
+      "Bash(npm run typecheck:*)",
+      "Bash(npm run lint)",
+      "Bash(npm start:*)",
+      "Bash(npx expo start:*)",
+      "Bash(find:*)"
+    ]
+  },
+  "enableAllProjectMcpServers": true,
+  "enabledMcpjsonServers": [
+    "supabase"
+  ]
+}

@@ -1,0 +1,37 @@
+I want to create a new app named "Trivia Party".                                                                                                      │
+It'll be a mobile app for ios and android based on React Native and Expo.                                                                             │
+The purpose of this app is to host local trivia parties at homes or pubs or other gathering places.                                                   │
+A party host will create a party event for a specific date & time.  The host will:                                                                    │
+  1. create a party                                                                                                                                     │
+  2. add one or more "rounds" to a party                                                                                                                │
+  3. add one more trivia questions to each round                                                                                                        │
+  4. the host can choose how many questions to add to each round, and from what categories the questions are randomly selected                          │
+  5. the host can "start" the party and advance through "slides"                                                                                        │
+  6. the host will be able to display the current question on a big screen (TV) using Chromecast or AirPlay 
+  7. players will be able to scan a QR code displayed on the TV to join the party and answer questions using their mobile devices
+  8. players will join the party, then select a team they belong to, or create a new team if their team doesn't exist
+  9. players will answer questions on their mobile devices, and their answers will be recorded at the server
+  10. only one answer per team will be recorded for each question
+  11. the host will be able to see which teams have answered each question so they can advance to the next question once all teams have answered
+  12. at the end of each round, the scores for each team will be displayed on the TV and on the players' devices
+Supabase will be used as the backend for the app, providing real-time data synchronization and storage for party events, rounds, questions, teams, and answers.
+The app will also include user authentication, allowing hosts and players to create accounts and manage their profiles.
+The app will have a modern and user-friendly interface, with a focus on ease of use for both hosts and players.
+The app will be designed to handle multiple parties simultaneously, allowing different hosts to create and manage their own events without interference.
+The app will also include a leaderboard feature to display the top teams based on their scores across multiple rounds, encouraging competition and engagement among players.
+We currently have one table in the datbase named "questions" that contains over 60,000 trivia questions.
+The questions table has the following columns:
+- id (uuid, primary key)
+- category (text, the category of the trivia question)
+- subcategory (text, the subcategory of the trivia question, though this can be null)
+- difficulty (text, the difficulty level of the trivia question, e.g., easy, medium, hard)
+- question (text, the trivia question text)
+- a (text, the correct answer to the trivia question)
+- b (text, an incorrect answer to the trivia question)
+- c (text, an incorrect answer to the trivia question)
+- d (text, an incorrect answer to the trivia question)
+- level (ignore this column for now, it will be used later)
+- metadata (jsonb, additional metadata about the question, such as source or author, ignore for now)
+- created_at (timestamp, the date and time when the question was created)
+- updated_at (timestamp, the date and time when the question was last updated)
+Note: the correct answer is always stored in column "a", and the other answers are stored in columns "b", "c", and "d". The order of the answers is randomized when displayed to players.
