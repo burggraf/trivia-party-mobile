@@ -10,6 +10,7 @@ type Team = Database['public']['Tables']['teams']['Row'];
 
 interface CurrentQuestion {
   id: string;
+  party_question_id: string;
   question: string;
   option_a: string;
   option_b: string;
@@ -28,7 +29,7 @@ export default function PlayerPartyScreen() {
 
   const [party, setParty] = useState<Party | null>(null);
   const [team, setTeam] = useState<Team | null>(null);
-  const [currentQuestion] = useState<CurrentQuestion | null>(null);
+  const [currentQuestion, setCurrentQuestion] = useState<CurrentQuestion | null>(null);
   const [selectedAnswer, setSelectedAnswer] = useState<
     'a' | 'b' | 'c' | 'd' | null
   >(null);
@@ -59,7 +60,7 @@ export default function PlayerPartyScreen() {
 
       if (currentParty?.status === 'active') {
         setGameStatus('active');
-        // TODO: Load current question
+        await loadCurrentQuestion();
       } else if (currentParty?.status === 'completed') {
         setGameStatus('completed');
         loadLeaderboard();
@@ -69,6 +70,34 @@ export default function PlayerPartyScreen() {
       Alert.alert('Error', 'Failed to load game information');
     } finally {
       setLoading(false);
+    }
+  };
+
+  const loadCurrentQuestion = async () => {
+    try {
+      // For now, we'll load the first question of the first round
+      // In a real implementation, this would come from game state synchronization
+      const rounds = await PartyService.getPartyRounds(partyId);
+      if (rounds.length > 0) {
+        const firstRound = rounds[0];
+        const question = await PartyService.getCurrentQuestion(firstRound.id, 1);
+        
+        if (question && question.questions) {
+          setCurrentQuestion({
+            id: question.questions.id,
+            party_question_id: question.id,
+            question: question.questions.question,
+            option_a: question.questions.option_a,
+            option_b: question.questions.option_b,
+            option_c: question.questions.option_c,
+            option_d: question.questions.option_d,
+            category: question.questions.category,
+            difficulty: question.questions.difficulty,
+          });
+        }
+      }
+    } catch (error) {
+      console.error('Error loading current question:', error);
     }
   };
 
@@ -82,7 +111,7 @@ export default function PlayerPartyScreen() {
   };
 
   const handleSubmitAnswer = async () => {
-    if (!selectedAnswer || !currentQuestion) {
+    if (!selectedAnswer || !currentQuestion || !team) {
       Alert.alert('Error', 'Please select an answer');
       return;
     }
@@ -90,11 +119,26 @@ export default function PlayerPartyScreen() {
     try {
       setSubmitting(true);
 
-      // TODO: Submit answer using party question ID
-      // const isCorrect = await PartyService.submitAnswer(currentQuestion.id, teamId, selectedAnswer);
+      const isCorrect = await PartyService.submitAnswer(
+        currentQuestion.party_question_id, 
+        team.id, 
+        selectedAnswer
+      );
 
       setHasAnswered(true);
-      Alert.alert('Answer Submitted!', "Your team's answer has been recorded.");
+      
+      const resultMessage = isCorrect 
+        ? "Correct! Your team earned points." 
+        : "Answer submitted. Wait for results!";
+        
+      Alert.alert('Answer Submitted!', resultMessage);
+      
+      // Refresh team score
+      const updatedTeams = await PartyService.getPartyTeams(partyId);
+      const updatedTeam = updatedTeams.find(t => t.id === team.id);
+      if (updatedTeam) {
+        setTeam(updatedTeam);
+      }
     } catch (error: any) {
       console.error('Error submitting answer:', error);
       Alert.alert('Error', error.message || 'Failed to submit answer');
