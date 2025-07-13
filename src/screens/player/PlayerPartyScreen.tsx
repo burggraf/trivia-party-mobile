@@ -142,19 +142,67 @@ export default function PlayerPartyScreen() {
     console.log('PlayerPartyScreen: Refreshing subscription manually');
     setSubscriptionStatus('refreshing');
     
-    // Check current game state manually
     try {
+      // Check current party status
       const currentParty = await PartyService.getPartyById(partyId);
+      console.log('PlayerPartyScreen: Current party status:', currentParty?.status);
+      
       if (currentParty?.status === 'active' && gameStatus === 'waiting') {
         console.log('PlayerPartyScreen: Manual refresh detected game started');
         await handleGameStarted();
+      } else if (currentParty?.status === 'completed') {
+        console.log('PlayerPartyScreen: Manual refresh detected game ended');
+        handleGameEnded();
+      } else if (currentParty?.status === 'active' && gameStatus === 'active') {
+        // Since all questions exist in DB, we need a different way to find the "current" question
+        // For now, let's just try to load the next logical question
+        console.log('PlayerPartyScreen: Trying to find next question...');
+        
+        if (currentQuestionId) {
+          const [roundId, questionOrderStr] = currentQuestionId.split('-');
+          const currentOrder = parseInt(questionOrderStr);
+          const rounds = await PartyService.getPartyRounds(partyId);
+          const currentRound = rounds.find(r => r.id === roundId);
+          
+          if (currentRound) {
+            console.log('PlayerPartyScreen: Current round:', currentRound.name, 'question:', currentOrder, 'of', currentRound.question_count);
+            
+            // Try next question in current round
+            if (currentOrder < currentRound.question_count) {
+              const nextOrder = currentOrder + 1;
+              console.log('PlayerPartyScreen: Trying next question in round:', nextOrder);
+              try {
+                await loadSpecificQuestion(roundId, nextOrder);
+                console.log('PlayerPartyScreen: Loaded next question successfully');
+              } catch (error) {
+                console.log('PlayerPartyScreen: Next question not available yet');
+              }
+            } else {
+              // Try first question of next round
+              const currentRoundIndex = rounds.findIndex(r => r.id === roundId);
+              if (currentRoundIndex >= 0 && currentRoundIndex < rounds.length - 1) {
+                const nextRound = rounds[currentRoundIndex + 1];
+                console.log('PlayerPartyScreen: Trying first question of next round:', nextRound.name);
+                try {
+                  await loadSpecificQuestion(nextRound.id, 1);
+                  console.log('PlayerPartyScreen: Loaded next round successfully');
+                } catch (error) {
+                  console.log('PlayerPartyScreen: Next round not available yet');
+                }
+              } else {
+                console.log('PlayerPartyScreen: No more questions available');
+              }
+            }
+          }
+        }
       }
       
-      // Also refresh team data
+      // Refresh team data
       const teams = await PartyService.getPartyTeams(partyId);
       const currentTeam = teams.find((t) => t.id === teamId);
       if (currentTeam) {
         setTeam(currentTeam);
+        console.log('PlayerPartyScreen: Updated team score:', currentTeam.score);
       }
       
       setSubscriptionStatus('subscribed');
