@@ -6,6 +6,14 @@ import { StackNavigationProp } from '@react-navigation/stack';
 import { PlayerStackParamList } from '../../navigation/PlayerNavigator';
 import { PartyService } from '../../services/partyService';
 
+// Check if BarCodeScanner is available
+let isQRScannerAvailable = true;
+try {
+  require('expo-barcode-scanner');
+} catch (error) {
+  isQRScannerAvailable = false;
+}
+
 type Navigation = StackNavigationProp<PlayerStackParamList, 'PlayerHome'>;
 
 export default function PlayerHomeScreen() {
@@ -94,33 +102,51 @@ export default function PlayerHomeScreen() {
         </Card.Content>
       </Card>
 
-      <View style={styles.dividerContainer}>
-        <Divider style={styles.divider} />
-        <Text variant="bodyMedium" style={styles.orText}>
-          OR
-        </Text>
-        <Divider style={styles.divider} />
-      </View>
-
-      <Card style={styles.card}>
-        <Card.Content>
-          <Text variant="titleMedium" style={styles.sectionTitle}>
-            Scan QR Code
+      {isQRScannerAvailable && (
+        <View style={styles.dividerContainer}>
+          <Divider style={styles.divider} />
+          <Text variant="bodyMedium" style={styles.orText}>
+            OR
           </Text>
-          <Text variant="bodyMedium" style={styles.description}>
-            Scan the QR code displayed by your host
-          </Text>
+          <Divider style={styles.divider} />
+        </View>
+      )}
 
-          <Button
-            mode="outlined"
-            onPress={handleScanQR}
-            icon="qrcode-scan"
-            style={styles.scanButton}
-          >
-            Scan QR Code
-          </Button>
-        </Card.Content>
-      </Card>
+      {isQRScannerAvailable ? (
+        <Card style={styles.card}>
+          <Card.Content>
+            <Text variant="titleMedium" style={styles.sectionTitle}>
+              Scan QR Code
+            </Text>
+            <Text variant="bodyMedium" style={styles.description}>
+              Scan the QR code displayed by your host
+            </Text>
+
+            <Button
+              mode="outlined"
+              onPress={handleScanQR}
+              icon="qrcode-scan"
+              style={styles.scanButton}
+            >
+              Scan QR Code
+            </Button>
+          </Card.Content>
+        </Card>
+      ) : (
+        <Card style={styles.devBuildCard}>
+          <Card.Content>
+            <Text variant="titleMedium" style={styles.devBuildTitle}>
+              QR Scanner Available in Development Build
+            </Text>
+            <Text variant="bodyMedium" style={styles.description}>
+              QR code scanning requires a development build. To enable it, run:
+            </Text>
+            <Text variant="bodyMedium" style={styles.codeText}>
+              npx expo run:ios or npx expo run:android
+            </Text>
+          </Card.Content>
+        </Card>
+      )}
 
       <Card style={styles.infoCard}>
         <Card.Content>
@@ -195,6 +221,23 @@ const styles = StyleSheet.create({
   },
   scanButton: {
     paddingVertical: 8,
+  },
+  devBuildCard: {
+    backgroundColor: '#fef3c7',
+    elevation: 2,
+    marginBottom: 16,
+  },
+  devBuildTitle: {
+    color: '#92400e',
+    marginBottom: 8,
+  },
+  codeText: {
+    color: '#92400e',
+    fontFamily: 'monospace',
+    backgroundColor: '#fbbf24',
+    padding: 8,
+    borderRadius: 4,
+    marginTop: 8,
   },
   infoCard: {
     backgroundColor: '#f3f4f6',

@@ -1,11 +1,18 @@
 import React, { useState, useEffect } from 'react';
-import { View, StyleSheet, Alert } from 'react-native';
+import { View, StyleSheet, Alert, Platform } from 'react-native';
 import { Text, Button, Card, TextInput, ActivityIndicator } from 'react-native-paper';
 import { useNavigation } from '@react-navigation/native';
 import { StackNavigationProp } from '@react-navigation/stack';
-import { BarCodeScanner } from 'expo-barcode-scanner';
 import { PlayerStackParamList } from '../../navigation/PlayerNavigator';
 import { PartyService } from '../../services/partyService';
+
+// Dynamic import to handle cases where BarCodeScanner isn't available
+let BarCodeScanner: any = null;
+try {
+  BarCodeScanner = require('expo-barcode-scanner').BarCodeScanner;
+} catch (error) {
+  console.log('BarCodeScanner not available:', error);
+}
 
 type Navigation = StackNavigationProp<PlayerStackParamList, 'QRScanner'>;
 
@@ -23,6 +30,11 @@ export default function QRScannerScreen() {
 
   const requestCameraPermission = async () => {
     try {
+      if (!BarCodeScanner) {
+        console.log('BarCodeScanner not available, defaulting to manual entry');
+        setHasPermission(false);
+        return;
+      }
       const { status } = await BarCodeScanner.requestPermissionsAsync();
       setHasPermission(status === 'granted');
     } catch (error) {
@@ -112,7 +124,7 @@ export default function QRScannerScreen() {
   }
 
   // Show scanner if permission granted and scanner is active
-  if (hasPermission && showScanner) {
+  if (hasPermission && showScanner && BarCodeScanner) {
     return (
       <View style={styles.container}>
         <BarCodeScanner
@@ -184,7 +196,7 @@ export default function QRScannerScreen() {
       </View>
 
       <View style={styles.content}>
-        {hasPermission && (
+        {hasPermission && BarCodeScanner && (
           <Card style={styles.card}>
             <Card.Content>
               <Text variant="titleMedium" style={styles.title}>
@@ -205,7 +217,26 @@ export default function QRScannerScreen() {
           </Card>
         )}
 
-        {!hasPermission && (
+        {!BarCodeScanner && (
+          <Card style={styles.devBuildCard}>
+            <Card.Content>
+              <Text variant="titleMedium" style={styles.devBuildTitle}>
+                QR Scanner Requires Development Build
+              </Text>
+              <Text variant="bodyMedium" style={styles.description}>
+                QR code scanning requires a development build. To enable it, run:
+              </Text>
+              <Text variant="bodyMedium" style={styles.codeText}>
+                npx expo run:ios or npx expo run:android
+              </Text>
+              <Text variant="bodyMedium" style={styles.description}>
+                For now, please use manual entry below.
+              </Text>
+            </Card.Content>
+          </Card>
+        )}
+
+        {!hasPermission && BarCodeScanner && (
           <Card style={styles.permissionCard}>
             <Card.Content>
               <Text variant="titleMedium" style={styles.permissionTitle}>
@@ -262,9 +293,11 @@ export default function QRScannerScreen() {
               How to Join
             </Text>
             <Text variant="bodyMedium" style={styles.infoText}>
-              {hasPermission 
-                ? "Use the QR scanner above for quick joining, or enter the 6-character code manually."
-                : "Enter the 6-character party code provided by your host. Enable camera permissions to use QR scanning."}
+              {!BarCodeScanner 
+                ? "QR scanning requires a development build. Use manual entry for now."
+                : hasPermission 
+                  ? "Use the QR scanner above for quick joining, or enter the 6-character code manually."
+                  : "Enter the 6-character party code provided by your host. Enable camera permissions to use QR scanning."}
             </Text>
           </Card.Content>
         </Card>
@@ -331,6 +364,22 @@ const styles = StyleSheet.create({
   permissionTitle: {
     color: '#dc2626',
     marginBottom: 8,
+  },
+  devBuildCard: {
+    backgroundColor: '#fef3c7',
+    elevation: 2,
+  },
+  devBuildTitle: {
+    color: '#92400e',
+    marginBottom: 8,
+  },
+  codeText: {
+    color: '#92400e',
+    fontFamily: 'monospace',
+    backgroundColor: '#fbbf24',
+    padding: 8,
+    borderRadius: 4,
+    marginVertical: 8,
   },
   title: {
     color: '#1f2937',
