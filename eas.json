@@ -1,0 +1,108 @@
+{
+  "cli": {
+    "version": ">= 5.2.0"
+  },
+  "build": {
+    "development": {
+      "distribution": "internal",
+      "android": {
+        "gradleCommand": ":app:assembleDebug",
+        "buildType": "apk"
+      },
+      "ios": {
+        "buildConfiguration": "Debug",
+        "simulator": false
+      },
+      "channel": "development",
+      "env": {
+        "ENVIRONMENT": "development"
+      }
+    },
+    "development-simulator": {
+      "distribution": "internal",
+      "ios": {
+        "buildConfiguration": "Debug", 
+        "simulator": true
+      },
+      "channel": "development",
+      "env": {
+        "ENVIRONMENT": "development"
+      }
+    },
+    "preview": {
+      "distribution": "internal",
+      "android": {
+        "buildType": "apk"
+      },
+      "ios": {
+        "buildConfiguration": "Release"
+      },
+      "channel": "preview",
+      "env": {
+        "ENVIRONMENT": "staging"
+      }
+    },
+    "preview-simulator": {
+      "distribution": "internal",
+      "ios": {
+        "buildConfiguration": "Release",
+        "simulator": true
+      },
+      "channel": "preview",
+      "env": {
+        "ENVIRONMENT": "staging"
+      }
+    },
+    "testflight": {
+      "distribution": "store",
+      "ios": {
+        "buildConfiguration": "Release",
+        "autoIncrement": "buildNumber"
+      },
+      "channel": "testflight",
+      "env": {
+        "ENVIRONMENT": "production"
+      }
+    },
+    "internal-testing": {
+      "distribution": "store", 
+      "android": {
+        "buildType": "aab",
+        "autoIncrement": "versionCode"
+      },
+      "channel": "internal-testing",
+      "env": {
+        "ENVIRONMENT": "production"
+      }
+    },
+    "production": {
+      "distribution": "store",
+      "android": {
+        "buildType": "aab",
+        "autoIncrement": "versionCode"
+      },
+      "ios": {
+        "buildConfiguration": "Release",
+        "autoIncrement": "buildNumber"
+      },
+      "channel": "production",
+      "env": {
+        "ENVIRONMENT": "production"
+      }
+    },
+    "production-simulator": {
+      "distribution": "internal",
+      "ios": {
+        "buildConfiguration": "Release",
+        "simulator": true
+      },
+      "channel": "production",
+      "env": {
+        "ENVIRONMENT": "production"
+      }
+    }
+  },
+  "submit": {
+    "production": {}
+  }
+}
