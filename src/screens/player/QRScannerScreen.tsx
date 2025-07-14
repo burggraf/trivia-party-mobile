@@ -11,7 +11,8 @@ let BarCodeScanner: any = null;
 try {
   BarCodeScanner = require('expo-barcode-scanner').BarCodeScanner;
 } catch (error) {
-  console.log('BarCodeScanner not available:', error);
+  // BarCodeScanner not available (expected in Expo Go)
+  // Silently continue with manual entry fallback
 }
 
 type Navigation = StackNavigationProp<PlayerStackParamList, 'QRScanner'>;
@@ -31,7 +32,7 @@ export default function QRScannerScreen() {
   const requestCameraPermission = async () => {
     try {
       if (!BarCodeScanner) {
-        console.log('BarCodeScanner not available, defaulting to manual entry');
+        // BarCodeScanner not available, default to manual entry
         setHasPermission(false);
         return;
       }

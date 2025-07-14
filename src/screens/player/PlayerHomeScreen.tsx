@@ -11,6 +11,7 @@ let isQRScannerAvailable = true;
 try {
   require('expo-barcode-scanner');
 } catch (error) {
+  // BarCodeScanner not available (expected in Expo Go)
   isQRScannerAvailable = false;
 }
 
