@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { View, StyleSheet, ScrollView, Alert } from 'react-native';
+import { View, StyleSheet, ScrollView, Alert, KeyboardAvoidingView, Platform } from 'react-native';
 import { Text, TextInput, Button, Card, Chip } from 'react-native-paper';
 import { useNavigation } from '@react-navigation/native';
 import { StackNavigationProp } from '@react-navigation/stack';
@@ -82,7 +82,16 @@ export default function CreatePartyScreen() {
   };
 
   return (
-    <ScrollView style={styles.container} contentContainerStyle={styles.content}>
+    <KeyboardAvoidingView 
+      style={{ flex: 1 }} 
+      behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+    >
+      <ScrollView 
+        style={styles.container} 
+        contentContainerStyle={styles.content}
+        keyboardShouldPersistTaps="handled"
+        showsVerticalScrollIndicator={false}
+      >
       <Text variant="headlineSmall" style={styles.title}>
         Create New Party
       </Text>
@@ -103,6 +112,10 @@ export default function CreatePartyScreen() {
             mode="outlined"
             style={styles.input}
             placeholder="e.g., Friday Night Trivia"
+            autoFocus={true}
+            autoCapitalize="words"
+            autoCorrect={true}
+            selectTextOnFocus={true}
           />
 
           <TextInput
@@ -114,6 +127,9 @@ export default function CreatePartyScreen() {
             multiline
             numberOfLines={3}
             placeholder="Tell players what to expect..."
+            autoCapitalize="sentences"
+            autoCorrect={true}
+            selectTextOnFocus={true}
           />
 
           <Text variant="labelLarge" style={styles.label}>
@@ -136,6 +152,7 @@ export default function CreatePartyScreen() {
             style={styles.input}
             keyboardType="numeric"
             placeholder="Leave empty for unlimited"
+            selectTextOnFocus={true}
           />
         </Card.Content>
       </Card>
@@ -182,6 +199,7 @@ export default function CreatePartyScreen() {
         />
       )}
     </ScrollView>
+    </KeyboardAvoidingView>
   );
 }
 
