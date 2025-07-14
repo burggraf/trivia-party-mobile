@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { View, StyleSheet, ScrollView, Alert, KeyboardAvoidingView, Platform } from 'react-native';
+import { View, StyleSheet, ScrollView, Alert, KeyboardAvoidingView, Platform, TextInput as RNTextInput } from 'react-native';
 import { Text, TextInput, Button, Card, Chip } from 'react-native-paper';
 import { useNavigation } from '@react-navigation/native';
 import { StackNavigationProp } from '@react-navigation/stack';
@@ -85,6 +85,7 @@ export default function CreatePartyScreen() {
     <KeyboardAvoidingView 
       style={{ flex: 1 }} 
       behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+      keyboardVerticalOffset={Platform.OS === 'ios' ? 100 : 0}
     >
       <ScrollView 
         style={styles.container} 
@@ -104,6 +105,18 @@ export default function CreatePartyScreen() {
           <Text variant="titleMedium" style={styles.sectionTitle}>
             Party Information
           </Text>
+
+          {/* Test native TextInput first */}
+          <View style={styles.testInputContainer}>
+            <Text style={styles.testLabel}>Test Input (Native RN):</Text>
+            <RNTextInput
+              style={styles.testInput}
+              placeholder="Tap here to test keyboard..."
+              value={partyName}
+              onChangeText={setPartyName}
+              autoFocus={true}
+            />
+          </View>
 
           <TextInput
             label="Party Name *"
@@ -248,5 +261,27 @@ const styles = StyleSheet.create({
   createButton: {
     marginTop: 16,
     paddingVertical: 8,
+  },
+  testInputContainer: {
+    marginBottom: 16,
+    padding: 12,
+    backgroundColor: '#fff3cd',
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: '#ffc107',
+  },
+  testLabel: {
+    fontSize: 12,
+    color: '#856404',
+    marginBottom: 8,
+    fontWeight: 'bold',
+  },
+  testInput: {
+    borderWidth: 1,
+    borderColor: '#ffc107',
+    borderRadius: 4,
+    padding: 12,
+    fontSize: 16,
+    backgroundColor: '#fff',
   },
 });
