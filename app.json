@@ -29,14 +29,7 @@
     "web": {
       "favicon": "./assets/favicon.png"
     },
-    "plugins": [
-      [
-        "expo-barcode-scanner",
-        {
-          "cameraPermission": "Allow $(PRODUCT_NAME) to access camera to scan QR codes for joining trivia parties."
-        }
-      ]
-    ],
+    "plugins": [],
     "extra": {
       "eas": {
         "projectId": "c660859d-3955-4aee-adc5-224ba5c1bac1"
