@@ -17,7 +17,7 @@
     ],
     "ios": {
       "supportsTablet": true,
-      "bundleIdentifier": "com.yourcompany.triviaparty",
+      "bundleIdentifier": "com.azabab.triviaparty",
       "buildNumber": "1",
       "infoPlist": {
         "NSCameraUsageDescription": "This app uses the camera to scan QR codes for joining trivia parties."
@@ -29,7 +29,7 @@
         "backgroundColor": "#ffffff"
       },
       "edgeToEdgeEnabled": true,
-      "package": "com.yourcompany.triviaparty",
+      "package": "com.azabab.triviaparty",
       "versionCode": 1,
       "permissions": [
         "CAMERA"
@@ -44,11 +44,11 @@
     ],
     "extra": {
       "eas": {
-        "projectId": "your-project-id-here"
+        "projectId": "c660859d-3955-4aee-adc5-224ba5c1bac1"
       }
     },
     "updates": {
-      "url": "https://u.expo.dev/your-project-id-here"
+      "url": "https://u.expo.dev/c660859d-3955-4aee-adc5-224ba5c1bac1"
     },
     "runtimeVersion": {
       "policy": "appVersion"
