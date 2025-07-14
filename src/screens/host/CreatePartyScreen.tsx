@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { View, StyleSheet, ScrollView, Alert, KeyboardAvoidingView, Platform, TextInput as RNTextInput } from 'react-native';
+import { View, StyleSheet, ScrollView, Alert } from 'react-native';
 import { Text, TextInput, Button, Card, Chip } from 'react-native-paper';
 import { useNavigation } from '@react-navigation/native';
 import { StackNavigationProp } from '@react-navigation/stack';
@@ -82,17 +82,7 @@ export default function CreatePartyScreen() {
   };
 
   return (
-    <KeyboardAvoidingView 
-      style={{ flex: 1 }} 
-      behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-      keyboardVerticalOffset={Platform.OS === 'ios' ? 100 : 0}
-    >
-      <ScrollView 
-        style={styles.container} 
-        contentContainerStyle={styles.content}
-        keyboardShouldPersistTaps="handled"
-        showsVerticalScrollIndicator={false}
-      >
+    <ScrollView style={styles.container} contentContainerStyle={styles.content}>
       <Text variant="headlineSmall" style={styles.title}>
         Create New Party
       </Text>
@@ -106,18 +96,6 @@ export default function CreatePartyScreen() {
             Party Information
           </Text>
 
-          {/* Test native TextInput first */}
-          <View style={styles.testInputContainer}>
-            <Text style={styles.testLabel}>Test Input (Native RN):</Text>
-            <RNTextInput
-              style={styles.testInput}
-              placeholder="Tap here to test keyboard..."
-              value={partyName}
-              onChangeText={setPartyName}
-              autoFocus={true}
-            />
-          </View>
-
           <TextInput
             label="Party Name *"
             value={partyName}
@@ -125,10 +103,6 @@ export default function CreatePartyScreen() {
             mode="outlined"
             style={styles.input}
             placeholder="e.g., Friday Night Trivia"
-            autoFocus={true}
-            autoCapitalize="words"
-            autoCorrect={true}
-            selectTextOnFocus={true}
           />
 
           <TextInput
@@ -140,9 +114,6 @@ export default function CreatePartyScreen() {
             multiline
             numberOfLines={3}
             placeholder="Tell players what to expect..."
-            autoCapitalize="sentences"
-            autoCorrect={true}
-            selectTextOnFocus={true}
           />
 
           <Text variant="labelLarge" style={styles.label}>
@@ -165,7 +136,6 @@ export default function CreatePartyScreen() {
             style={styles.input}
             keyboardType="numeric"
             placeholder="Leave empty for unlimited"
-            selectTextOnFocus={true}
           />
         </Card.Content>
       </Card>
@@ -212,7 +182,6 @@ export default function CreatePartyScreen() {
         />
       )}
     </ScrollView>
-    </KeyboardAvoidingView>
   );
 }
 
@@ -261,27 +230,5 @@ const styles = StyleSheet.create({
   createButton: {
     marginTop: 16,
     paddingVertical: 8,
-  },
-  testInputContainer: {
-    marginBottom: 16,
-    padding: 12,
-    backgroundColor: '#fff3cd',
-    borderRadius: 8,
-    borderWidth: 1,
-    borderColor: '#ffc107',
-  },
-  testLabel: {
-    fontSize: 12,
-    color: '#856404',
-    marginBottom: 8,
-    fontWeight: 'bold',
-  },
-  testInput: {
-    borderWidth: 1,
-    borderColor: '#ffc107',
-    borderRadius: 4,
-    padding: 12,
-    fontSize: 16,
-    backgroundColor: '#fff',
   },
 });

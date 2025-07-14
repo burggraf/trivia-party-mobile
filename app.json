@@ -1,6 +1,6 @@
 {
   "expo": {
-    "name": "Trivia Party",
+    "name": "trivia-party-mobile",
     "slug": "trivia-party-mobile",
     "version": "1.0.0",
     "orientation": "portrait",
@@ -12,32 +12,18 @@
       "resizeMode": "contain",
       "backgroundColor": "#ffffff"
     },
-    "assetBundlePatterns": [
-      "**/*"
-    ],
     "ios": {
-      "supportsTablet": true,
-      "bundleIdentifier": "com.azabab.triviaparty",
-      "buildNumber": "1",
-      "infoPlist": {
-        "NSCameraUsageDescription": "This app uses the camera to scan QR codes for joining trivia parties."
-      }
+      "supportsTablet": true
     },
     "android": {
       "adaptiveIcon": {
         "foregroundImage": "./assets/adaptive-icon.png",
         "backgroundColor": "#ffffff"
       },
-      "edgeToEdgeEnabled": true,
-      "package": "com.azabab.triviaparty",
-      "versionCode": 1,
-      "permissions": [
-        "CAMERA"
-      ]
+      "edgeToEdgeEnabled": true
     },
     "web": {
-      "favicon": "./assets/favicon.png",
-      "bundler": "metro"
+      "favicon": "./assets/favicon.png"
     },
     "plugins": [
       "expo-barcode-scanner"
@@ -46,12 +32,6 @@
       "eas": {
         "projectId": "c660859d-3955-4aee-adc5-224ba5c1bac1"
       }
-    },
-    "updates": {
-      "url": "https://u.expo.dev/c660859d-3955-4aee-adc5-224ba5c1bac1"
-    },
-    "runtimeVersion": {
-      "policy": "appVersion"
     }
   }
 }
