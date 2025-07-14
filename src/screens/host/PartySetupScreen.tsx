@@ -3,6 +3,7 @@ import { View, StyleSheet, ScrollView, FlatList } from 'react-native';
 import { Text, Card, Button, FAB, Chip, Divider } from 'react-native-paper';
 import { useRoute, useNavigation } from '@react-navigation/native';
 import { StackNavigationProp } from '@react-navigation/stack';
+import QRCode from 'react-native-qrcode-svg';
 import { HostStackParamList } from '../../navigation/HostNavigator';
 import { PartyService } from '../../services/partyService';
 import { Database } from '../../types/database';
@@ -243,9 +244,27 @@ export default function PartySetupScreen() {
             <Text variant="headlineSmall" style={styles.partyName}>
               {party.name}
             </Text>
-            <Text variant="bodyLarge" style={styles.joinCode}>
-              Join Code: {party.join_code}
-            </Text>
+            
+            <View style={styles.joinCodeSection}>
+              <View style={styles.joinCodeInfo}>
+                <Text variant="bodyLarge" style={styles.joinCode}>
+                  Join Code: {party.join_code}
+                </Text>
+                <Text variant="bodySmall" style={styles.joinCodeHint}>
+                  Players can scan the QR code or enter this code manually
+                </Text>
+              </View>
+              
+              <View style={styles.qrCodeContainer}>
+                <QRCode
+                  value={party.join_code}
+                  size={80}
+                  color="#1f2937"
+                  backgroundColor="#ffffff"
+                />
+              </View>
+            </View>
+            
             {party.description && (
               <Text variant="bodyMedium" style={styles.description}>
                 {party.description}
@@ -352,10 +371,32 @@ const styles = StyleSheet.create({
     color: '#1f2937',
     marginBottom: 8,
   },
+  joinCodeSection: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 12,
+  },
+  joinCodeInfo: {
+    flex: 1,
+    marginRight: 16,
+  },
   joinCode: {
     color: '#6366f1',
     fontWeight: 'bold',
-    marginBottom: 8,
+    marginBottom: 4,
+  },
+  joinCodeHint: {
+    color: '#6b7280',
+    fontSize: 12,
+  },
+  qrCodeContainer: {
+    padding: 8,
+    backgroundColor: '#ffffff',
+    borderRadius: 8,
+    elevation: 1,
+    borderWidth: 1,
+    borderColor: '#e5e7eb',
   },
   description: {
     color: '#6b7280',
