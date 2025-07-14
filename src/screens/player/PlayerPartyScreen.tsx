@@ -5,6 +5,7 @@ import { useRoute } from '@react-navigation/native';
 import { PartyService } from '../../services/partyService';
 import { Database } from '../../types/database';
 import { supabase } from '../../lib/supabase';
+import { convertShuffledAnswerToOriginal } from '../../utils/questionUtils';
 
 type Party = Database['public']['Tables']['parties']['Row'];
 type Team = Database['public']['Tables']['teams']['Row'];
@@ -12,10 +13,11 @@ type Team = Database['public']['Tables']['teams']['Row'];
 interface CurrentQuestion {
   party_question_id: string;
   question: string;
-  option_a: string;
-  option_b: string;
-  option_c: string;
-  option_d: string;
+  shuffled_answers: Array<{
+    letter: 'A' | 'B' | 'C' | 'D';
+    text: string;
+    isCorrect: boolean;
+  }>;
   category: string;
   difficulty: string;
   round_name: string;
@@ -33,7 +35,7 @@ export default function PlayerPartyScreen() {
   const [team, setTeam] = useState<Team | null>(null);
   const [currentQuestion, setCurrentQuestion] = useState<CurrentQuestion | null>(null);
   const [selectedAnswer, setSelectedAnswer] = useState<
-    'a' | 'b' | 'c' | 'd' | null
+    'A' | 'B' | 'C' | 'D' | null
   >(null);
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
@@ -45,7 +47,7 @@ export default function PlayerPartyScreen() {
   const [currentQuestionId, setCurrentQuestionId] = useState<string | null>(null);
   const [subscriptionStatus, setSubscriptionStatus] = useState<string>('connecting');
   const [showingResults, setShowingResults] = useState(false);
-  const [correctAnswer, setCorrectAnswer] = useState<'a' | 'b' | 'c' | 'd' | null>(null);
+  const [correctAnswer, setCorrectAnswer] = useState<'A' | 'B' | 'C' | 'D' | null>(null);
 
   useEffect(() => {
     loadGameData();
@@ -128,7 +130,7 @@ export default function PlayerPartyScreen() {
     console.log('PlayerPartyScreen: Setting question data from broadcast:', questionData);
     
     // Validate question data
-    if (!questionData || !questionData.party_question_id || !questionData.question) {
+    if (!questionData || !questionData.party_question_id || !questionData.question || !questionData.shuffled_answers) {
       console.error('PlayerPartyScreen: Invalid question data received:', questionData);
       return;
     }
@@ -144,18 +146,13 @@ export default function PlayerPartyScreen() {
     console.log('PlayerPartyScreen: Question set successfully:', {
       party_question_id: questionData.party_question_id,
       question: questionData.question,
-      options: {
-        a: questionData.option_a,
-        b: questionData.option_b,
-        c: questionData.option_c,
-        d: questionData.option_d
-      }
+      shuffled_answers: questionData.shuffled_answers
     });
   };
 
   const handleQuestionResults = (resultsData: any) => {
     console.log('PlayerPartyScreen: Showing question results:', resultsData);
-    setCorrectAnswer(resultsData.correct_answer);
+    setCorrectAnswer(resultsData.correct_answer_letter);
     setShowingResults(true);
   };
 
@@ -211,7 +208,7 @@ export default function PlayerPartyScreen() {
     }
   };
 
-  const handleAnswerSelect = async (answer: 'a' | 'b' | 'c' | 'd') => {
+  const handleAnswerSelect = async (answer: 'A' | 'B' | 'C' | 'D') => {
     console.log('PlayerPartyScreen: Answer selected:', answer);
     
     if (hasAnswered || submitting) {
@@ -232,10 +229,20 @@ export default function PlayerPartyScreen() {
       setSubmitting(true);
       setSelectedAnswer(answer);
 
+      // Convert the shuffled answer letter back to the original database format
+      const originalAnswer = convertShuffledAnswerToOriginal(
+        { 
+          shuffledAnswers: currentQuestion.shuffled_answers,
+          correctAnswerLetter: currentQuestion.shuffled_answers.find(a => a.isCorrect)?.letter || 'A',
+          originalQuestion: currentQuestion.question
+        },
+        answer
+      );
+
       const isCorrect = await PartyService.submitAnswer(
         currentQuestion.party_question_id, 
         team.id, 
-        answer
+        originalAnswer
       );
 
       setHasAnswered(true);
@@ -335,9 +342,9 @@ export default function PlayerPartyScreen() {
           </Text>
 
           <View style={styles.answerButtonsContainer}>
-            {['a', 'b', 'c', 'd'].map((option) => {
-              const isCorrect = showingResults && correctAnswer === option;
-              const isSelected = selectedAnswer === option;
+            {currentQuestion?.shuffled_answers?.map((answer) => {
+              const isCorrect = showingResults && correctAnswer === answer.letter;
+              const isSelected = selectedAnswer === answer.letter;
               const isWrong = showingResults && isSelected && !isCorrect;
               
               let buttonStyle = styles.answerButton;
@@ -356,15 +363,15 @@ export default function PlayerPartyScreen() {
               
               return (
                 <Button
-                  key={option}
+                  key={answer.letter}
                   mode="outlined"
-                  onPress={() => handleAnswerSelect(option as 'a' | 'b' | 'c' | 'd')}
+                  onPress={() => handleAnswerSelect(answer.letter)}
                   disabled={hasAnswered || showingResults || submitting}
                   style={buttonStyle}
                   labelStyle={textStyle}
-                  loading={submitting && selectedAnswer === option}
+                  loading={submitting && selectedAnswer === answer.letter}
                 >
-                  {option.toUpperCase()}. {currentQuestion?.[`option_${option}` as keyof CurrentQuestion] || `Option ${option.toUpperCase()} text missing`}
+                  {answer.letter}. {answer.text}
                 </Button>
               );
             })}

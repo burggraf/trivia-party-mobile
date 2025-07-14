@@ -1,5 +1,6 @@
 import { supabase } from '../lib/supabase';
 import { Database } from '../types/database';
+import { shuffleQuestionAnswers } from '../utils/questionUtils';
 
 type Party = Database['public']['Tables']['parties']['Row'];
 type PartyInsert = Database['public']['Tables']['parties']['Insert'];
@@ -447,7 +448,7 @@ export class PartyService {
     }
   }
 
-  static async broadcastQuestionToPlayers(partyId: string, questionData: any) {
+  static async broadcastQuestionToPlayers(partyId: string, questionData: any, preShuffledQuestion?: any) {
     console.log('PartyService: Broadcasting question to players for party:', partyId);
     try {
       const channelName = `party-${partyId}`;
@@ -463,20 +464,33 @@ export class PartyService {
         });
       });
 
+      // Use pre-shuffled question if provided, otherwise shuffle now
+      let shuffledQuestion;
+      if (preShuffledQuestion) {
+        shuffledQuestion = preShuffledQuestion;
+        console.log('PartyService: Using pre-shuffled question from host');
+      } else {
+        shuffledQuestion = shuffleQuestionAnswers({
+          question: questionData.questions.question,
+          a: questionData.questions.a,
+          b: questionData.questions.b,
+          c: questionData.questions.c,
+          d: questionData.questions.d,
+        });
+        console.log('PartyService: Generated new shuffle for question');
+      }
+
       const payload = {
         party_question_id: questionData.id,
-        question: questionData.questions.question,
-        option_a: questionData.questions.a,
-        option_b: questionData.questions.b,
-        option_c: questionData.questions.c,
-        option_d: questionData.questions.d,
+        question: shuffledQuestion.originalQuestion,
+        shuffled_answers: shuffledQuestion.shuffledAnswers,
         category: questionData.questions.category,
         difficulty: questionData.questions.difficulty,
         round_name: questionData.round_name,
         question_number: questionData.question_order
       };
 
-      console.log('PartyService: Sending question payload:', payload);
+      console.log('PartyService: Sending shuffled question payload:', payload);
       
       const result = await channel.send({
         type: 'broadcast',
@@ -488,8 +502,12 @@ export class PartyService {
       
       // Clean up channel
       supabase.removeChannel(channel);
+      
+      // Return the shuffled question so caller can use it for results
+      return shuffledQuestion;
     } catch (error) {
       console.error('PartyService: Error broadcasting question:', error);
+      return null;
     }
   }
 
@@ -510,7 +528,7 @@ export class PartyService {
     }
   }
 
-  static async broadcastQuestionResults(partyId: string, questionData: any) {
+  static async broadcastQuestionResults(partyId: string, questionData: any, shuffledAnswers?: any) {
     console.log('PartyService: Broadcasting question results for party:', partyId);
     try {
       const channelName = `party-${partyId}`;
@@ -526,17 +544,28 @@ export class PartyService {
         });
       });
 
+      // If shuffled answers provided, use them; otherwise shuffle now
+      let questionWithCorrectAnswer;
+      if (shuffledAnswers) {
+        questionWithCorrectAnswer = shuffledAnswers;
+      } else {
+        questionWithCorrectAnswer = shuffleQuestionAnswers({
+          question: questionData.questions.question,
+          a: questionData.questions.a,
+          b: questionData.questions.b,
+          c: questionData.questions.c,
+          d: questionData.questions.d,
+        });
+      }
+
       const result = await channel.send({
         type: 'broadcast',
         event: 'question_results',
         payload: {
           party_question_id: questionData.id,
-          correct_answer: 'a', // 'a' is always correct in our schema
-          question: questionData.questions.question,
-          option_a: questionData.questions.a,
-          option_b: questionData.questions.b,
-          option_c: questionData.questions.c,
-          option_d: questionData.questions.d
+          correct_answer_letter: questionWithCorrectAnswer.correctAnswerLetter,
+          shuffled_answers: questionWithCorrectAnswer.shuffledAnswers,
+          question: questionWithCorrectAnswer.originalQuestion,
         }
       });
       console.log('PartyService: Question results broadcast result:', result);

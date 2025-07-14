@@ -142,6 +142,7 @@ export default function PartySetupScreen() {
               round_name: rounds[0].name
             };
             console.log('PartySetupScreen: Broadcasting first question after delay:', questionWithRoundName);
+            // Don't pass pre-shuffled question, let the service generate the shuffle
             await PartyService.broadcastQuestionToPlayers(partyId, questionWithRoundName);
           }
         } catch (error) {

@@ -4,6 +4,7 @@ import { Text, Card, Button, Chip, Divider } from 'react-native-paper';
 import { useRoute, useNavigation } from '@react-navigation/native';
 import { PartyService } from '../../services/partyService';
 import { Database } from '../../types/database';
+import { shuffleQuestionAnswers, ShuffledQuestion } from '../../utils/questionUtils';
 
 type Party = Database['public']['Tables']['parties']['Row'];
 type Round = Database['public']['Tables']['rounds']['Row'];
@@ -31,6 +32,7 @@ export default function HostPartyScreen() {
     isShowingResults: false,
   });
   const [currentQuestion, setCurrentQuestion] = useState<any>(null);
+  const [shuffledQuestion, setShuffledQuestion] = useState<ShuffledQuestion | null>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -75,12 +77,8 @@ export default function HostPartyScreen() {
             
             // Broadcast the current question to players who are joining/rejoining
             if (questionData) {
-              const questionWithRoundName = {
-                ...questionData,
-                round_name: nextQuestion.round.name
-              };
-              console.log('HostPartyScreen: Broadcasting resume question:', questionWithRoundName);
-              await PartyService.broadcastQuestionToPlayers(partyId, questionWithRoundName);
+              console.log('HostPartyScreen: Broadcasting resume question:', questionData);
+              await broadcastQuestionAndSetDisplay(questionData, nextQuestion.round.name);
             }
           } else {
             // All questions answered - game should be completed
@@ -98,11 +96,7 @@ export default function HostPartyScreen() {
           // Fallback to first question if resume fails
           const firstQuestion = await loadCurrentQuestion(roundsData[0].id, 1);
           if (firstQuestion) {
-            const questionWithRoundName = {
-              ...firstQuestion,
-              round_name: roundsData[0].name
-            };
-            await PartyService.broadcastQuestionToPlayers(partyId, questionWithRoundName);
+            await broadcastQuestionAndSetDisplay(firstQuestion, roundsData[0].name);
           }
           setGameState(prev => ({
             ...prev,
@@ -129,6 +123,21 @@ export default function HostPartyScreen() {
     }
   };
 
+  const broadcastQuestionAndSetDisplay = async (questionData: any, roundName: string) => {
+    // Broadcast question to players and get the shuffled version used
+    const shuffled = await PartyService.broadcastQuestionToPlayers(partyId, {
+      ...questionData,
+      round_name: roundName
+    });
+    
+    // Use the same shuffle for host display
+    if (shuffled) {
+      setShuffledQuestion(shuffled);
+    }
+    
+    return shuffled;
+  };
+
   const handleNextQuestion = async () => {
     const currentRound = rounds[gameState.currentRound - 1];
     if (!currentRound) return;
@@ -141,12 +150,8 @@ export default function HostPartyScreen() {
       
       // Broadcast the full question data to players
       if (nextQuestion) {
-        const questionWithRoundName = {
-          ...nextQuestion,
-          round_name: currentRound.name
-        };
-        console.log('HostPartyScreen: Broadcasting next question:', questionWithRoundName);
-        await PartyService.broadcastQuestionToPlayers(partyId, questionWithRoundName);
+        console.log('HostPartyScreen: Broadcasting next question:', nextQuestion);
+        await broadcastQuestionAndSetDisplay(nextQuestion, currentRound.name);
       }
       
       setGameState(prev => ({
@@ -162,12 +167,8 @@ export default function HostPartyScreen() {
         
         // Broadcast the full question data to players
         if (nextQuestion) {
-          const questionWithRoundName = {
-            ...nextQuestion,
-            round_name: nextRound.name
-          };
-          console.log('HostPartyScreen: Broadcasting next round question:', questionWithRoundName);
-          await PartyService.broadcastQuestionToPlayers(partyId, questionWithRoundName);
+          console.log('HostPartyScreen: Broadcasting next round question:', nextQuestion);
+          await broadcastQuestionAndSetDisplay(nextQuestion, nextRound.name);
         }
         
         setGameState({
@@ -186,9 +187,9 @@ export default function HostPartyScreen() {
   const handleShowResults = async () => {
     setGameState(prev => ({ ...prev, isShowingResults: true }));
     
-    // Broadcast question results to players
-    if (currentQuestion) {
-      await PartyService.broadcastQuestionResults(partyId, currentQuestion);
+    // Broadcast question results to players with the same shuffled answers they saw
+    if (currentQuestion && shuffledQuestion) {
+      await PartyService.broadcastQuestionResults(partyId, currentQuestion, shuffledQuestion);
     }
   };
 
@@ -278,20 +279,20 @@ export default function HostPartyScreen() {
       </Card>
 
       {/* Current Question Display */}
-      {currentQuestion && (
+      {shuffledQuestion && (
         <Card style={styles.questionCard}>
           <Card.Content>
             <View style={styles.questionHeader}>
               <Text variant="labelLarge" style={styles.category}>
-                {currentQuestion.questions?.category}
+                {currentQuestion?.questions?.category}
               </Text>
               <Text variant="labelMedium" style={styles.difficulty}>
-                {currentQuestion.questions?.difficulty}
+                {currentQuestion?.questions?.difficulty}
               </Text>
             </View>
 
             <Text variant="headlineSmall" style={styles.question}>
-              {currentQuestion.questions?.question}
+              {shuffledQuestion.originalQuestion}
             </Text>
 
             <Divider style={styles.divider} />
@@ -300,22 +301,35 @@ export default function HostPartyScreen() {
               Answer Options:
             </Text>
             
-            {['a', 'b', 'c', 'd'].map((option) => (
-              <View key={option} style={styles.answerOption}>
+            {shuffledQuestion.shuffledAnswers.map((answer) => (
+              <View key={answer.letter} style={[
+                styles.answerOption,
+                gameState.isShowingResults && answer.isCorrect && styles.correctAnswerOption
+              ]}>
                 <Text variant="bodyMedium" style={styles.optionLabel}>
-                  {option.toUpperCase()}.
+                  {answer.letter}.
                 </Text>
-                <Text variant="bodyMedium" style={styles.answerText}>
-                  {currentQuestion.questions?.[option]}
+                <Text variant="bodyMedium" style={[
+                  styles.answerText,
+                  gameState.isShowingResults && answer.isCorrect && styles.correctAnswerText
+                ]}>
+                  {answer.text}
                 </Text>
+                {gameState.isShowingResults && answer.isCorrect && (
+                  <Text variant="bodyMedium" style={styles.correctIndicator}>
+                    ✓ CORRECT
+                  </Text>
+                )}
               </View>
             ))}
 
-            <View style={styles.correctAnswer}>
-              <Text variant="bodyMedium" style={styles.correctLabel}>
-                Correct Answer: A (Note: 'A' is always the correct answer in this schema)
-              </Text>
-            </View>
+            {!gameState.isShowingResults && (
+              <View style={styles.hiddenAnswerNotice}>
+                <Text variant="bodyMedium" style={styles.hiddenAnswerText}>
+                  Correct answer will be revealed when you show results
+                </Text>
+              </View>
+            )}
           </Card.Content>
         </Card>
       )}
@@ -492,18 +506,28 @@ const styles = StyleSheet.create({
     marginLeft: 8,
     flex: 1,
   },
-  correctAnswer: {
-    marginTop: 16,
-    padding: 12,
+  correctAnswerOption: {
     backgroundColor: '#ecfdf5',
-    borderRadius: 8,
     borderWidth: 1,
     borderColor: '#059669',
   },
-  correctLabel: {
+  correctIndicator: {
     color: '#059669',
     fontWeight: 'bold',
+    marginLeft: 8,
+  },
+  hiddenAnswerNotice: {
+    marginTop: 16,
+    padding: 12,
+    backgroundColor: '#f3f4f6',
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: '#d1d5db',
+  },
+  hiddenAnswerText: {
+    color: '#6b7280',
     textAlign: 'center',
+    fontStyle: 'italic',
   },
   controlsCard: {
     elevation: 2,
