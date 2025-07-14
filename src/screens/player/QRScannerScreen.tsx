@@ -222,16 +222,10 @@ export default function QRScannerScreen() {
           <Card style={styles.devBuildCard}>
             <Card.Content>
               <Text variant="titleMedium" style={styles.devBuildTitle}>
-                QR Scanner Requires Development Build
+                QR Scanner Unavailable
               </Text>
               <Text variant="bodyMedium" style={styles.description}>
-                QR code scanning requires a development build. To enable it, run:
-              </Text>
-              <Text variant="bodyMedium" style={styles.codeText}>
-                npx expo run:ios or npx expo run:android
-              </Text>
-              <Text variant="bodyMedium" style={styles.description}>
-                For now, please use manual entry below.
+                QR code scanning requires camera access that's not available in this environment. Please use manual entry below.
               </Text>
             </Card.Content>
           </Card>
@@ -295,7 +289,7 @@ export default function QRScannerScreen() {
             </Text>
             <Text variant="bodyMedium" style={styles.infoText}>
               {!BarCodeScanner 
-                ? "QR scanning requires a development build. Use manual entry for now."
+                ? "QR scanning is not available in this environment. Use manual entry below."
                 : hasPermission 
                   ? "Use the QR scanner above for quick joining, or enter the 6-character code manually."
                   : "Enter the 6-character party code provided by your host. Enable camera permissions to use QR scanning."}
@@ -373,14 +367,6 @@ const styles = StyleSheet.create({
   devBuildTitle: {
     color: '#92400e',
     marginBottom: 8,
-  },
-  codeText: {
-    color: '#92400e',
-    fontFamily: 'monospace',
-    backgroundColor: '#fbbf24',
-    padding: 8,
-    borderRadius: 4,
-    marginVertical: 8,
   },
   title: {
     color: '#1f2937',

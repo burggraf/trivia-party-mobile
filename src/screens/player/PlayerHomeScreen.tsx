@@ -137,13 +137,10 @@ export default function PlayerHomeScreen() {
         <Card style={styles.devBuildCard}>
           <Card.Content>
             <Text variant="titleMedium" style={styles.devBuildTitle}>
-              QR Scanner Available in Development Build
+              QR Scanner Unavailable in Expo Go
             </Text>
             <Text variant="bodyMedium" style={styles.description}>
-              QR code scanning requires a development build. To enable it, run:
-            </Text>
-            <Text variant="bodyMedium" style={styles.codeText}>
-              npx expo run:ios or npx expo run:android
+              QR code scanning requires camera access that's not available in Expo Go. Use manual entry below to join parties.
             </Text>
           </Card.Content>
         </Card>
@@ -231,14 +228,6 @@ const styles = StyleSheet.create({
   devBuildTitle: {
     color: '#92400e',
     marginBottom: 8,
-  },
-  codeText: {
-    color: '#92400e',
-    fontFamily: 'monospace',
-    backgroundColor: '#fbbf24',
-    padding: 8,
-    borderRadius: 4,
-    marginTop: 8,
   },
   infoCard: {
     backgroundColor: '#f3f4f6',
