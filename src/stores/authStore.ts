@@ -25,10 +25,14 @@ export const useAuthStore = create<AuthState>((set) => ({
 
   initialize: async () => {
     try {
+      console.log('🚀 Starting auth initialization...');
+      
       // Check if we're using placeholder Supabase config
-      const isPlaceholder =
-        process.env.EXPO_PUBLIC_SUPABASE_URL?.includes('placeholder') ||
-        !process.env.EXPO_PUBLIC_SUPABASE_URL;
+      const supabaseUrl = process.env.EXPO_PUBLIC_SUPABASE_URL;
+      const isPlaceholder = supabaseUrl?.includes('placeholder') || !supabaseUrl;
+
+      console.log('🔧 Supabase URL:', supabaseUrl ? 'configured' : 'missing');
+      console.log('🔧 Is placeholder:', isPlaceholder);
 
       if (isPlaceholder) {
         console.warn('⚠️  Supabase not configured - running in demo mode');
@@ -36,16 +40,22 @@ export const useAuthStore = create<AuthState>((set) => ({
         return;
       }
 
+      console.log('📡 Getting Supabase session...');
       const {
         data: { session },
       } = await supabase.auth.getSession();
+      
+      console.log('✅ Session retrieved:', session ? 'found' : 'not found');
       set({ session, user: session?.user ?? null, initialized: true });
 
       supabase.auth.onAuthStateChange((_event, session) => {
+        console.log('🔄 Auth state changed:', _event, session ? 'session exists' : 'no session');
         set({ session, user: session?.user ?? null });
       });
+      
+      console.log('✅ Auth initialization complete');
     } catch (error) {
-      console.error('Error initializing auth:', error);
+      console.error('❌ Error initializing auth:', error);
       set({ initialized: true });
     }
   },
