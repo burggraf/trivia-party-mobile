@@ -2,6 +2,8 @@ import React, { useState, useEffect } from 'react';
 import { View, StyleSheet, ScrollView, Alert } from 'react-native';
 import { Text, Card, Button, Chip, Divider } from 'react-native-paper';
 import { useRoute, useNavigation } from '@react-navigation/native';
+import { StackNavigationProp } from '@react-navigation/stack';
+import { HostStackParamList } from '../../navigation/HostNavigator';
 import { PartyService } from '../../services/partyService';
 import { Database } from '../../types/database';
 import { shuffleQuestionAnswers, ShuffledQuestion } from '../../utils/questionUtils';
@@ -17,9 +19,11 @@ interface GameState {
   isShowingResults: boolean;
 }
 
+type Navigation = StackNavigationProp<HostStackParamList, 'HostParty'>;
+
 export default function HostPartyScreen() {
   const route = useRoute();
-  const navigation = useNavigation();
+  const navigation = useNavigation<Navigation>();
   const { partyId } = route.params as { partyId: string };
 
   const [party, setParty] = useState<Party | null>(null);
@@ -211,6 +215,10 @@ export default function HostPartyScreen() {
 
   const getCurrentRound = () => rounds[gameState.currentRound - 1];
 
+  const handleOpenTVDisplay = () => {
+    navigation.navigate('TVDisplay', { partyId });
+  };
+
   if (loading) {
     return (
       <View style={styles.centerContainer}>
@@ -275,6 +283,26 @@ export default function HostPartyScreen() {
               </Text>
             </View>
           ))}
+        </Card.Content>
+      </Card>
+
+      {/* TV Display Controls */}
+      <Card style={styles.tvDisplayCard}>
+        <Card.Content>
+          <Text variant="titleMedium" style={styles.sectionTitle}>
+            TV Display
+          </Text>
+          <Text variant="bodyMedium" style={styles.tvDisplayDescription}>
+            Open the TV-optimized display for large screens or casting. Perfect for showing questions and leaderboards to all participants.
+          </Text>
+          <Button
+            mode="contained"
+            onPress={handleOpenTVDisplay}
+            style={styles.tvDisplayButton}
+            icon="television"
+          >
+            Open TV Display
+          </Button>
         </Card.Content>
       </Card>
 
@@ -423,6 +451,19 @@ const styles = StyleSheet.create({
   teamsCard: {
     marginBottom: 16,
     elevation: 2,
+  },
+  tvDisplayCard: {
+    marginBottom: 16,
+    elevation: 2,
+    backgroundColor: '#f0f9ff',
+  },
+  tvDisplayDescription: {
+    color: '#374151',
+    marginBottom: 16,
+    lineHeight: 20,
+  },
+  tvDisplayButton: {
+    backgroundColor: '#6366f1',
   },
   sectionTitle: {
     color: '#1f2937',

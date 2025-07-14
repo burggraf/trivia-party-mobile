@@ -4,12 +4,14 @@ import HostHomeScreen from '../screens/host/HostHomeScreen';
 import CreatePartyScreen from '../screens/host/CreatePartyScreen';
 import PartySetupScreen from '../screens/host/PartySetupScreen';
 import HostPartyScreen from '../screens/host/HostPartyScreen';
+import TVDisplayScreen from '../screens/host/TVDisplayScreen';
 
 export type HostStackParamList = {
   HostHome: undefined;
   CreateParty: undefined;
   PartySetup: { partyId: string };
   HostParty: { partyId: string };
+  TVDisplay: { partyId: string };
 };
 
 const Stack = createStackNavigator<HostStackParamList>();
@@ -48,6 +50,14 @@ export default function HostNavigator() {
         name="HostParty"
         component={HostPartyScreen}
         options={{ title: 'Host Party' }}
+      />
+      <Stack.Screen
+        name="TVDisplay"
+        component={TVDisplayScreen}
+        options={{ 
+          title: 'TV Display',
+          headerShown: false // Hide header for TV display
+        }}
       />
     </Stack.Navigator>
   );

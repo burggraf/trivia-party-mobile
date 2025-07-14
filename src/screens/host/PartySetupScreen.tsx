@@ -167,6 +167,10 @@ export default function PartySetupScreen() {
     }
   };
 
+  const handleOpenTVDisplay = () => {
+    navigation.navigate('TVDisplay', { partyId });
+  };
+
   const renderRoundCard = ({ item }: { item: Round }) => (
     <Card style={styles.roundCard}>
       <Card.Content>
@@ -280,6 +284,17 @@ export default function PartySetupScreen() {
             <Text variant="bodySmall" style={styles.partyDetails}>
               Status: {party.status}
             </Text>
+            
+            <Divider style={styles.divider} />
+            
+            <Button
+              mode="outlined"
+              onPress={handleOpenTVDisplay}
+              style={styles.tvDisplayButton}
+              icon="television"
+            >
+              Open TV Display
+            </Button>
           </Card.Content>
         </Card>
 
@@ -461,5 +476,9 @@ const styles = StyleSheet.create({
   },
   selectQuestionsButton: {
     backgroundColor: '#f3f4f6',
+  },
+  tvDisplayButton: {
+    marginTop: 8,
+    borderColor: '#6366f1',
   },
 });
