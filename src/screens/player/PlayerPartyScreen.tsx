@@ -252,6 +252,8 @@ export default function PlayerPartyScreen() {
       const updatedTeam = updatedTeams.find(t => t.id === team.id);
       if (updatedTeam) {
         setTeam(updatedTeam);
+        // Broadcast the score update to other clients (including LiveLeaderboard)
+        await PartyService.broadcastTeamScoreUpdate(partyId, updatedTeam);
       }
     } catch (error: any) {
       console.error('Error submitting answer:', error);

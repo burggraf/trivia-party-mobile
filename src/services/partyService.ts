@@ -259,6 +259,37 @@ export class PartyService {
     return data || [];
   }
 
+  // Get enhanced leaderboard with round-by-round breakdown
+  static async getEnhancedPartyLeaderboard(partyId: string) {
+    const { data, error } = await supabase.rpc('get_enhanced_party_leaderboard', {
+      party_uuid: partyId,
+    });
+
+    if (error) throw error;
+    return data || [];
+  }
+
+  // Get leaderboard for a specific round
+  static async getRoundLeaderboard(partyId: string, roundNumber: number) {
+    const { data, error } = await supabase.rpc('get_round_leaderboard', {
+      party_uuid: partyId,
+      round_number_param: roundNumber,
+    });
+
+    if (error) throw error;
+    return data || [];
+  }
+
+  // Get team performance analytics
+  static async getTeamAnalytics(teamId: string) {
+    const { data, error } = await supabase.rpc('get_team_analytics', {
+      team_uuid: teamId,
+    });
+
+    if (error) throw error;
+    return data?.[0] || null;
+  }
+
   // Submit team answer
   static async submitAnswer(
     partyQuestionId: string,
@@ -580,7 +611,7 @@ export class PartyService {
   static async broadcastTeamScoreUpdate(partyId: string, team: Team) {
     console.log('PartyService: Broadcasting team score update for party:', partyId, 'team:', team.id);
     try {
-      const channelName = `party-${partyId}`;
+      const channelName = `teams-${partyId}`;
       const channel = supabase.channel(channelName);
       
       const result = await channel.send({

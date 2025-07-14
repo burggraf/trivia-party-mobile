@@ -7,6 +7,7 @@ import { HostStackParamList } from '../../navigation/HostNavigator';
 import { PartyService } from '../../services/partyService';
 import { Database } from '../../types/database';
 import { shuffleQuestionAnswers, ShuffledQuestion } from '../../utils/questionUtils';
+import LiveLeaderboard from '../../components/host/LiveLeaderboard';
 
 type Party = Database['public']['Tables']['parties']['Row'];
 type Round = Database['public']['Tables']['rounds']['Row'];
@@ -236,6 +237,10 @@ export default function HostPartyScreen() {
     navigation.navigate('TVDisplay', { partyId });
   };
 
+  const handleOpenEnhancedLeaderboard = () => {
+    navigation.navigate('EnhancedLeaderboard', { partyId });
+  };
+
   if (loading) {
     return (
       <View style={styles.centerContainer}>
@@ -303,23 +308,37 @@ export default function HostPartyScreen() {
         </Card.Content>
       </Card>
 
+      {/* Live Leaderboard */}
+      <LiveLeaderboard partyId={partyId} maxTeams={5} compact={true} />
+
       {/* TV Display Controls */}
       <Card style={styles.tvDisplayCard}>
         <Card.Content>
           <Text variant="titleMedium" style={styles.sectionTitle}>
-            TV Display
+            Display & Analytics
           </Text>
           <Text variant="bodyMedium" style={styles.tvDisplayDescription}>
-            Open the TV-optimized display for large screens or casting. Perfect for showing questions and leaderboards to all participants.
+            Access TV-optimized display and enhanced leaderboard with round-by-round analytics.
           </Text>
-          <Button
-            mode="contained"
-            onPress={handleOpenTVDisplay}
-            style={styles.tvDisplayButton}
-            icon="television"
-          >
-            Open TV Display
-          </Button>
+          <View style={styles.buttonRow}>
+            <Button
+              mode="contained"
+              onPress={handleOpenTVDisplay}
+              style={[styles.actionButton, styles.tvDisplayButton]}
+              icon="television"
+            >
+              TV Display
+            </Button>
+            
+            <Button
+              mode="contained"
+              onPress={handleOpenEnhancedLeaderboard}
+              style={[styles.actionButton, styles.leaderboardButton]}
+              icon="trophy"
+            >
+              Leaderboard
+            </Button>
+          </View>
         </Card.Content>
       </Card>
 
@@ -479,8 +498,19 @@ const styles = StyleSheet.create({
     marginBottom: 16,
     lineHeight: 20,
   },
+  buttonRow: {
+    flexDirection: 'row',
+    gap: 12,
+    marginTop: 16,
+  },
+  actionButton: {
+    flex: 1,
+  },
   tvDisplayButton: {
     backgroundColor: '#6366f1',
+  },
+  leaderboardButton: {
+    backgroundColor: '#059669',
   },
   sectionTitle: {
     color: '#1f2937',

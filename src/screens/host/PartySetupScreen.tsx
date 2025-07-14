@@ -171,6 +171,10 @@ export default function PartySetupScreen() {
     navigation.navigate('TVDisplay', { partyId });
   };
 
+  const handleOpenEnhancedLeaderboard = () => {
+    navigation.navigate('EnhancedLeaderboard', { partyId });
+  };
+
   const renderRoundCard = ({ item }: { item: Round }) => (
     <Card style={styles.roundCard}>
       <Card.Content>
@@ -287,14 +291,25 @@ export default function PartySetupScreen() {
             
             <Divider style={styles.divider} />
             
-            <Button
-              mode="outlined"
-              onPress={handleOpenTVDisplay}
-              style={styles.tvDisplayButton}
-              icon="television"
-            >
-              Open TV Display
-            </Button>
+            <View style={styles.buttonRow}>
+              <Button
+                mode="outlined"
+                onPress={handleOpenTVDisplay}
+                style={[styles.actionButton, styles.tvDisplayButton]}
+                icon="television"
+              >
+                TV Display
+              </Button>
+              
+              <Button
+                mode="outlined"
+                onPress={handleOpenEnhancedLeaderboard}
+                style={[styles.actionButton, styles.leaderboardButton]}
+                icon="trophy"
+              >
+                Leaderboard
+              </Button>
+            </View>
           </Card.Content>
         </Card>
 
@@ -477,8 +492,18 @@ const styles = StyleSheet.create({
   selectQuestionsButton: {
     backgroundColor: '#f3f4f6',
   },
-  tvDisplayButton: {
+  buttonRow: {
+    flexDirection: 'row',
+    gap: 12,
     marginTop: 8,
+  },
+  actionButton: {
+    flex: 1,
+  },
+  tvDisplayButton: {
     borderColor: '#6366f1',
+  },
+  leaderboardButton: {
+    borderColor: '#059669',
   },
 });

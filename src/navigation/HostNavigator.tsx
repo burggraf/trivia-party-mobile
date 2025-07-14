@@ -5,6 +5,7 @@ import CreatePartyScreen from '../screens/host/CreatePartyScreen';
 import PartySetupScreen from '../screens/host/PartySetupScreen';
 import HostPartyScreen from '../screens/host/HostPartyScreen';
 import TVDisplayScreen from '../screens/host/TVDisplayScreen';
+import EnhancedLeaderboardScreen from '../screens/host/EnhancedLeaderboardScreen';
 
 export type HostStackParamList = {
   HostHome: undefined;
@@ -12,6 +13,7 @@ export type HostStackParamList = {
   PartySetup: { partyId: string };
   HostParty: { partyId: string };
   TVDisplay: { partyId: string };
+  EnhancedLeaderboard: { partyId: string };
 };
 
 const Stack = createStackNavigator<HostStackParamList>();
@@ -58,6 +60,11 @@ export default function HostNavigator() {
           title: 'TV Display',
           headerShown: false // Hide header for TV display
         }}
+      />
+      <Stack.Screen
+        name="EnhancedLeaderboard"
+        component={EnhancedLeaderboardScreen}
+        options={{ title: 'Enhanced Leaderboard' }}
       />
     </Stack.Navigator>
   );
