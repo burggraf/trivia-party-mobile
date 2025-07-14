@@ -1,51 +1,59 @@
+export type Json =
+  | string
+  | number
+  | boolean
+  | null
+  | { [key: string]: Json | undefined }
+  | Json[]
+
 export interface Database {
   public: {
     Tables: {
       questions: {
         Row: {
           id: string;
-          category: string;
+          category: string | null;
           subcategory: string | null;
-          difficulty: string;
-          question: string;
-          a: string; // correct answer
-          b: string; // incorrect answer
-          c: string; // incorrect answer
-          d: string; // incorrect answer
-          level: string | null;
-          metadata: any | null;
-          created_at: string;
-          updated_at: string;
+          difficulty: string | null;
+          question: string | null;
+          a: string | null; // correct answer
+          b: string | null; // incorrect answer
+          c: string | null; // incorrect answer
+          d: string | null; // incorrect answer
+          level: number | null;
+          metadata: Json | null;
+          created_at: string | null;
+          updated_at: string | null;
         };
         Insert: {
-          id?: string;
-          category: string;
+          id: string;
+          category?: string | null;
           subcategory?: string | null;
-          difficulty: string;
-          question: string;
-          a: string;
-          b: string;
-          c: string;
-          d: string;
-          level?: string | null;
-          metadata?: any | null;
-          created_at?: string;
-          updated_at?: string;
+          difficulty?: string | null;
+          question?: string | null;
+          a?: string | null;
+          b?: string | null;
+          c?: string | null;
+          d?: string | null;
+          level?: number | null;
+          metadata?: Json | null;
+          created_at?: string | null;
+          updated_at?: string | null;
         };
         Update: {
           id?: string;
-          category?: string;
+          category?: string | null;
           subcategory?: string | null;
-          difficulty?: string;
-          question?: string;
-          a?: string;
-          b?: string;
-          c?: string;
-          d?: string;
-          level?: string | null;
-          metadata?: any | null;
-          created_at?: string;
-          updated_at?: string;
+          difficulty?: string | null;
+          question?: string | null;
+          a?: string | null;
+          b?: string | null;
+          c?: string | null;
+          d?: string | null;
+          level?: number | null;
+          metadata?: Json | null;
+          created_at?: string | null;
+          updated_at?: string | null;
         };
       };
       parties: {
@@ -55,9 +63,12 @@ export interface Database {
           name: string;
           description: string | null;
           scheduled_date: string;
-          status: 'draft' | 'active' | 'completed' | 'cancelled';
+          status: string | null;
           join_code: string;
           max_teams: number | null;
+          current_round_id: string | null;
+          current_question_order: number | null;
+          game_state_updated_at: string | null;
           created_at: string;
           updated_at: string;
         };
@@ -67,9 +78,12 @@ export interface Database {
           name: string;
           description?: string | null;
           scheduled_date: string;
-          status?: 'draft' | 'active' | 'completed' | 'cancelled';
+          status?: string | null;
           join_code: string;
           max_teams?: number | null;
+          current_round_id?: string | null;
+          current_question_order?: number | null;
+          game_state_updated_at?: string | null;
           created_at?: string;
           updated_at?: string;
         };
@@ -79,9 +93,12 @@ export interface Database {
           name?: string;
           description?: string | null;
           scheduled_date?: string;
-          status?: 'draft' | 'active' | 'completed' | 'cancelled';
+          status?: string | null;
           join_code?: string;
           max_teams?: number | null;
+          current_round_id?: string | null;
+          current_question_order?: number | null;
+          game_state_updated_at?: string | null;
           created_at?: string;
           updated_at?: string;
         };
@@ -260,11 +277,58 @@ export interface Database {
           party_uuid: string;
         };
         Returns: {
-          team_id: string;
-          team_name: string;
+          id: string;
+          name: string;
+          color: string;
           score: number;
           rank: number;
         }[];
+      };
+      get_enhanced_party_leaderboard: {
+        Args: {
+          party_uuid: string;
+        };
+        Returns: {
+          team_id: string;
+          team_name: string;
+          team_color: string;
+          total_score: number;
+          round_scores: Json;
+          total_questions: number;
+          correct_answers: number;
+          accuracy: number;
+          rank: number;
+        }[];
+      };
+      get_round_leaderboard: {
+        Args: {
+          party_uuid: string;
+          round_number_param: number;
+        };
+        Returns: {
+          team_id: string;
+          team_name: string;
+          team_color: string;
+          round_score: number;
+          round_questions: number;
+          round_correct: number;
+          round_accuracy: number;
+          rank: number;
+        }[];
+      };
+      get_team_analytics: {
+        Args: {
+          team_uuid: string;
+        };
+        Returns: {
+          team_id: string;
+          team_name: string;
+          total_score: number;
+          total_questions: number;
+          correct_answers: number;
+          accuracy: number;
+          round_breakdown: Json;
+        };
       };
       select_questions_for_round: {
         Args: {
@@ -285,7 +349,42 @@ export interface Database {
         Args: {
           party_question_uuid: string;
           team_uuid: string;
-          selected_answer_param: 'a' | 'b' | 'c' | 'd';
+          selected_answer_param: string;
+        };
+        Returns: boolean;
+      };
+      is_party_host: {
+        Args: {
+          party_uuid: string;
+          user_uuid: string;
+        };
+        Returns: boolean;
+      };
+      is_party_player: {
+        Args: {
+          party_uuid: string;
+          user_uuid: string;
+        };
+        Returns: boolean;
+      };
+      is_team_member: {
+        Args: {
+          team_uuid: string;
+          user_uuid: string;
+        };
+        Returns: boolean;
+      };
+      get_user_team_in_party: {
+        Args: {
+          party_uuid: string;
+          user_uuid: string;
+        };
+        Returns: string;
+      };
+      has_party_access: {
+        Args: {
+          party_uuid: string;
+          user_uuid: string;
         };
         Returns: boolean;
       };
