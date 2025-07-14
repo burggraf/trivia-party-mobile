@@ -486,10 +486,18 @@ export class PartyService {
       const channel = supabase.channel(channelName);
       
       // Subscribe to the channel first to ensure it exists
-      await new Promise((resolve) => {
+      console.log('PartyService: Subscribing to channel for question broadcast...');
+      await new Promise((resolve, reject) => {
+        const timeout = setTimeout(() => {
+          console.log('PartyService: Channel subscription timeout!');
+          reject(new Error('Channel subscription timeout'));
+        }, 5000);
+        
         channel.subscribe((status) => {
           console.log('PartyService: Broadcast channel status for question:', status);
           if (status === 'SUBSCRIBED') {
+            clearTimeout(timeout);
+            console.log('PartyService: Channel successfully subscribed');
             resolve(true);
           }
         });
@@ -501,6 +509,7 @@ export class PartyService {
         shuffledQuestion = preShuffledQuestion;
         console.log('PartyService: Using pre-shuffled question from host');
       } else {
+        console.log('PartyService: About to shuffle question answers for:', questionData.questions?.question);
         shuffledQuestion = shuffleQuestionAnswers({
           question: questionData.questions.question,
           a: questionData.questions.a,
@@ -508,7 +517,7 @@ export class PartyService {
           c: questionData.questions.c,
           d: questionData.questions.d,
         });
-        console.log('PartyService: Generated new shuffle for question');
+        console.log('PartyService: Generated new shuffle for question:', shuffledQuestion?.originalQuestion);
       }
 
       const payload = {
@@ -532,7 +541,11 @@ export class PartyService {
       console.log('PartyService: Question broadcast result:', result);
       
       // Clean up channel
+      console.log('PartyService: Cleaning up broadcast channel');
       supabase.removeChannel(channel);
+      
+      // Add small delay to ensure cleanup completes
+      await new Promise(resolve => setTimeout(resolve, 100));
       
       // Return the shuffled question so caller can use it for results
       return shuffledQuestion;

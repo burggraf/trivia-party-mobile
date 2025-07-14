@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { View, StyleSheet, ScrollView, Alert } from 'react-native';
 import { Text, Card, Button, Chip, Divider } from 'react-native-paper';
-import { useRoute, useNavigation } from '@react-navigation/native';
+import { useRoute, useNavigation, useFocusEffect } from '@react-navigation/native';
 import { StackNavigationProp } from '@react-navigation/stack';
 import { HostStackParamList } from '../../navigation/HostNavigator';
 import { PartyService } from '../../services/partyService';
@@ -43,6 +43,30 @@ export default function HostPartyScreen() {
   useEffect(() => {
     loadGameData();
   }, [partyId]);
+
+  // Refresh teams and party status when screen comes into focus (without disrupting question progression)
+  useFocusEffect(
+    React.useCallback(() => {
+      if (party?.status === 'active') {
+        console.log('HostPartyScreen: Screen focused, refreshing teams only');
+        refreshTeamsOnly();
+      }
+    }, [party?.status])
+  );
+
+  const refreshTeamsOnly = async () => {
+    try {
+      const [currentParty, teamsData] = await Promise.all([
+        PartyService.getPartyById(partyId),
+        PartyService.getPartyTeams(partyId),
+      ]);
+      
+      setParty(currentParty);
+      setTeams(teamsData);
+    } catch (error) {
+      console.error('Error refreshing teams:', error);
+    }
+  };
 
   const loadGameData = async () => {
     try {
@@ -136,7 +160,9 @@ export default function HostPartyScreen() {
 
   const loadCurrentQuestion = async (roundId: string, questionOrder: number) => {
     try {
+      console.log(`HostPartyScreen: Loading question for roundId: ${roundId}, questionOrder: ${questionOrder}`);
       const question = await PartyService.getCurrentQuestion(roundId, questionOrder);
+      console.log('HostPartyScreen: Loaded question:', question);
       setCurrentQuestion(question);
       return question;
     } catch (error) {
@@ -146,41 +172,60 @@ export default function HostPartyScreen() {
   };
 
   const broadcastQuestionAndSetDisplay = async (questionData: any, roundName: string) => {
+    console.log('HostPartyScreen: broadcastQuestionAndSetDisplay called with:', {
+      questionText: questionData.questions?.question,
+      questionId: questionData.id,
+      roundName: roundName
+    });
+    
     // Broadcast question to players and get the shuffled version used
     const shuffled = await PartyService.broadcastQuestionToPlayers(partyId, {
       ...questionData,
       round_name: roundName
     });
     
+    console.log('HostPartyScreen: Received shuffled question back:', shuffled);
+    
     // Use the same shuffle for host display
     if (shuffled) {
+      console.log('HostPartyScreen: Setting new shuffled question:', shuffled.originalQuestion);
       setShuffledQuestion(shuffled);
+    } else {
+      console.error('HostPartyScreen: No shuffled question returned from broadcastQuestionToPlayers!');
     }
     
     return shuffled;
   };
 
   const handleNextQuestion = async () => {
+    console.log('HostPartyScreen: handleNextQuestion called with gameState:', gameState);
     const currentRound = rounds[gameState.currentRound - 1];
-    if (!currentRound) return;
+    if (!currentRound) {
+      console.log('HostPartyScreen: No current round found!');
+      return;
+    }
 
     const nextQuestionNum = gameState.currentQuestion + 1;
+    console.log(`HostPartyScreen: Current question: ${gameState.currentQuestion}, Next question: ${nextQuestionNum}, Round has ${currentRound.question_count} questions`);
     
     if (nextQuestionNum <= currentRound.question_count) {
       // Move to next question in current round
       const nextQuestion = await loadCurrentQuestion(currentRound.id, nextQuestionNum);
       
-      // Broadcast the full question data to players
+      // Update game state first
+      const newGameState = {
+        ...gameState,
+        currentQuestion: nextQuestionNum,
+        isShowingResults: false,
+      };
+      console.log('HostPartyScreen: Setting new game state:', newGameState);
+      setGameState(newGameState);
+      
+      // Then broadcast the full question data to players
       if (nextQuestion) {
         console.log('HostPartyScreen: Broadcasting next question:', nextQuestion);
         await broadcastQuestionAndSetDisplay(nextQuestion, currentRound.name);
       }
-      
-      setGameState(prev => ({
-        ...prev,
-        currentQuestion: nextQuestionNum,
-        isShowingResults: false,
-      }));
     } else {
       // Check if there's a next round
       if (gameState.currentRound < rounds.length) {

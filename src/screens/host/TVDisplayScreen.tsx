@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
-import { View, StyleSheet, Dimensions } from 'react-native';
+import { View, StyleSheet, Dimensions, TouchableOpacity } from 'react-native';
 import { Text, Card, Button } from 'react-native-paper';
-import { useRoute } from '@react-navigation/native';
+import { useRoute, useNavigation } from '@react-navigation/native';
 import { PartyService } from '../../services/partyService';
 import { Database } from '../../types/database';
 import { supabase } from '../../lib/supabase';
@@ -26,6 +26,7 @@ interface CurrentQuestion {
 
 export default function TVDisplayScreen() {
   const route = useRoute();
+  const navigation = useNavigation();
   const { partyId } = route.params as { partyId: string };
 
   const [party, setParty] = useState<Party | null>(null);
@@ -47,7 +48,14 @@ export default function TVDisplayScreen() {
 
   useEffect(() => {
     loadPartyData();
-    setupBroadcastSubscription();
+    const cleanup = setupBroadcastSubscription();
+    
+    // Cleanup subscription when component unmounts
+    return () => {
+      if (cleanup) {
+        cleanup();
+      }
+    };
   }, [partyId]);
 
   const loadPartyData = async () => {
@@ -65,6 +73,7 @@ export default function TVDisplayScreen() {
   };
 
   const setupBroadcastSubscription = () => {
+    console.log('TV Display: Setting up broadcast subscription for party:', partyId);
     const partySubscription = supabase
       .channel(`party-${partyId}`)
       .on('broadcast', { event: 'question_data' }, (payload) => {
@@ -88,6 +97,7 @@ export default function TVDisplayScreen() {
       });
 
     return () => {
+      console.log('TV Display: Cleaning up broadcast subscription for party:', partyId);
       supabase.removeChannel(partySubscription);
     };
   };
@@ -125,8 +135,18 @@ export default function TVDisplayScreen() {
     );
   };
 
+  const handleExitTVDisplay = () => {
+    console.log('TV Display: User tapping to exit, cleaning up subscriptions');
+    // The useEffect cleanup will handle the subscription cleanup
+    navigation.goBack();
+  };
+
   const renderWaitingState = () => (
-    <View style={styles.centerContainer}>
+    <TouchableOpacity 
+      style={styles.centerContainer} 
+      onPress={handleExitTVDisplay}
+      activeOpacity={1}
+    >
       <View style={styles.logoContainer}>
         <Text variant="displayLarge" style={styles.logo}>
           🎯 Trivia Party
@@ -136,6 +156,9 @@ export default function TVDisplayScreen() {
         </Text>
         <Text variant="titleLarge" style={styles.waitingText}>
           Waiting for game to start...
+        </Text>
+        <Text variant="bodyMedium" style={styles.tapHint}>
+          Tap anywhere to return to host controls
         </Text>
       </View>
       
@@ -159,11 +182,15 @@ export default function TVDisplayScreen() {
           </View>
         </View>
       )}
-    </View>
+    </TouchableOpacity>
   );
 
   const renderQuestion = () => (
-    <View style={styles.questionContainer}>
+    <TouchableOpacity 
+      style={styles.questionContainer} 
+      onPress={handleExitTVDisplay}
+      activeOpacity={1}
+    >
       {/* Header */}
       <View style={styles.questionHeader}>
         <View style={styles.gameInfo}>
@@ -254,11 +281,22 @@ export default function TVDisplayScreen() {
           </Text>
         </View>
       )}
-    </View>
+
+      {/* Tap hint */}
+      <View style={styles.tapHintContainer}>
+        <Text variant="bodyMedium" style={styles.tapHint}>
+          Tap anywhere to return to host controls
+        </Text>
+      </View>
+    </TouchableOpacity>
   );
 
   const renderLeaderboard = () => (
-    <View style={styles.leaderboardContainer}>
+    <TouchableOpacity 
+      style={styles.leaderboardContainer} 
+      onPress={handleExitTVDisplay}
+      activeOpacity={1}
+    >
       <Text variant="displayMedium" style={styles.leaderboardTitle}>
         Final Results
       </Text>
@@ -299,16 +337,30 @@ export default function TVDisplayScreen() {
           </View>
         ))}
       </View>
-    </View>
+
+      {/* Tap hint */}
+      <View style={styles.tapHintContainer}>
+        <Text variant="bodyMedium" style={styles.tapHint}>
+          Tap anywhere to return to host controls
+        </Text>
+      </View>
+    </TouchableOpacity>
   );
 
   if (!party) {
     return (
-      <View style={styles.centerContainer}>
+      <TouchableOpacity 
+        style={styles.centerContainer} 
+        onPress={handleExitTVDisplay}
+        activeOpacity={1}
+      >
         <Text variant="displayMedium" style={styles.errorText}>
           Party not found
         </Text>
-      </View>
+        <Text variant="bodyMedium" style={styles.tapHint}>
+          Tap anywhere to return to host controls
+        </Text>
+      </TouchableOpacity>
     );
   }
 
@@ -634,5 +686,19 @@ const styles = StyleSheet.create({
   },
   topScore: {
     color: '#0f172a',
+  },
+  tapHintContainer: {
+    position: 'absolute',
+    bottom: 40,
+    left: 0,
+    right: 0,
+    alignItems: 'center',
+  },
+  tapHint: {
+    color: '#64748b',
+    textAlign: 'center',
+    fontStyle: 'italic',
+    opacity: 0.8,
+    marginTop: 20,
   },
 });
