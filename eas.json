@@ -12,8 +12,7 @@
       },
       "ios": {
         "buildConfiguration": "Debug",
-        "simulator": false,
-        "appleTeamId": "HEGN9W2S9J"
+        "simulator": false
       },
       "channel": "development",
       "env": {
