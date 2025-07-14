@@ -12,7 +12,8 @@
       },
       "ios": {
         "buildConfiguration": "Debug",
-        "simulator": false
+        "simulator": false,
+        "appleTeamId": "HEGN9W2S9J"
       },
       "channel": "development",
       "env": {
@@ -22,7 +23,7 @@
     "development-simulator": {
       "distribution": "internal",
       "ios": {
-        "buildConfiguration": "Debug", 
+        "buildConfiguration": "Debug",
         "simulator": true
       },
       "channel": "development",
@@ -66,7 +67,7 @@
       }
     },
     "internal-testing": {
-      "distribution": "store", 
+      "distribution": "store",
       "android": {
         "buildType": "app-bundle",
         "autoIncrement": "versionCode"
