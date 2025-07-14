@@ -41,22 +41,36 @@ export const useAuthStore = create<AuthState>((set) => ({
       }
 
       console.log('📡 Getting Supabase session...');
-      const {
-        data: { session },
-      } = await supabase.auth.getSession();
+      
+      // Add timeout to prevent hanging
+      const sessionPromise = supabase.auth.getSession();
+      const timeoutPromise = new Promise((_, reject) => {
+        setTimeout(() => reject(new Error('Supabase session timeout')), 5000);
+      });
+      
+      const result = await Promise.race([sessionPromise, timeoutPromise]) as any;
+      const { data: { session } } = result;
       
       console.log('✅ Session retrieved:', session ? 'found' : 'not found');
       set({ session, user: session?.user ?? null, initialized: true });
 
-      supabase.auth.onAuthStateChange((_event, session) => {
-        console.log('🔄 Auth state changed:', _event, session ? 'session exists' : 'no session');
-        set({ session, user: session?.user ?? null });
-      });
+      // Set up auth state listener with error handling
+      try {
+        supabase.auth.onAuthStateChange((_event, session) => {
+          console.log('🔄 Auth state changed:', _event, session ? 'session exists' : 'no session');
+          set({ session, user: session?.user ?? null });
+        });
+      } catch (listenerError) {
+        console.warn('⚠️ Could not set up auth listener:', listenerError);
+        // Continue anyway - app can still work without listener
+      }
       
       console.log('✅ Auth initialization complete');
     } catch (error) {
       console.error('❌ Error initializing auth:', error);
-      set({ initialized: true });
+      console.log('📱 Continuing with offline mode...');
+      // Set initialized to true so app continues to work in offline mode
+      set({ session: null, user: null, initialized: true });
     }
   },
 
