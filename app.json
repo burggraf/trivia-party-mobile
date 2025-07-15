@@ -53,19 +53,13 @@
       "policy": "appVersion"
     },
     "updates": {
-      "url": "https://u.expo.dev/c660859d-3955-4aee-adc5-224ba5c1bac1"
+      "url": "https://u.expo.dev/c660859d-3955-4aee-adc5-224ba5c1bac1",
+      "fallbackToCacheTimeout": 0
     },
     "extra": {
       "eas": {
         "projectId": "c660859d-3955-4aee-adc5-224ba5c1bac1"
       }
-    },
-    "runtimeVersion": {
-      "policy": "appVersion"
-    },
-    "updates": {
-      "url": "https://u.expo.dev/c660859d-3955-4aee-adc5-224ba5c1bac1",
-      "fallbackToCacheTimeout": 0
     }
   }
 }
