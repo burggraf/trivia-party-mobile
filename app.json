@@ -29,8 +29,10 @@
       },
       "edgeToEdgeEnabled": true,
       "permissions": [
+        "android.permission.CAMERA",
         "android.permission.CAMERA"
-      ]
+      ],
+      "package": "com.azabab.triviaparty"
     },
     "web": {
       "favicon": "./assets/favicon.png"
