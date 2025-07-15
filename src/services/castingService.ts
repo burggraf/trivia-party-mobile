@@ -1,5 +1,5 @@
 import { Platform } from 'react-native';
-import { Video } from 'expo-av';
+import { Video, AVPlaybackStatus } from 'expo-av';
 import * as MediaLibrary from 'expo-media-library';
 
 export interface CastDevice {

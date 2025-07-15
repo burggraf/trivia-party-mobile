@@ -4,7 +4,7 @@ import { Text } from 'react-native-paper';
 import { PartyService } from '../../services/partyService';
 import { Database } from '../../types/database';
 import { supabase } from '../../lib/supabase';
-import CastButton from '../../components/host/CastButton';
+import NativeAirPlayButton from '../../components/host/NativeAirPlayButton';
 
 type Party = Database['public']['Tables']['parties']['Row'];
 type Team = Database['public']['Tables']['teams']['Row'];
@@ -339,8 +339,8 @@ export default function TVDisplayScreenWithCast({ navigation, route }: TVDisplay
     <View style={styles.container}>
       {/* Cast Button */}
       <View style={styles.castHeader}>
-        <CastButton 
-          onCastingStatusChange={setIsCasting}
+        <NativeAirPlayButton 
+          onAirPlayStatusChange={setIsCasting}
           style={styles.castButton}
         />
       </View>
