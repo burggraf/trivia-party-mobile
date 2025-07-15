@@ -222,10 +222,10 @@ export default function QRScannerScreen() {
           <Card style={styles.devBuildCard}>
             <Card.Content>
               <Text variant="titleMedium" style={styles.devBuildTitle}>
-                QR Scanner Unavailable
+                QR Scanner Not Available
               </Text>
               <Text variant="bodyMedium" style={styles.description}>
-                QR code scanning requires camera access that's not available in this environment. Please use manual entry below.
+                QR code scanning is not available in Expo Go development mode. For full QR functionality, use the production app. Manual code entry works perfectly!
               </Text>
             </Card.Content>
           </Card>
@@ -289,7 +289,7 @@ export default function QRScannerScreen() {
             </Text>
             <Text variant="bodyMedium" style={styles.infoText}>
               {!BarCodeScanner 
-                ? "QR scanning is not available in this environment. Use manual entry below."
+                ? "QR scanning requires the production app. Enter the party code manually below - it works just as well!"
                 : hasPermission 
                   ? "Use the QR scanner above for quick joining, or enter the 6-character code manually."
                   : "Enter the 6-character party code provided by your host. Enable camera permissions to use QR scanning."}
@@ -361,11 +361,11 @@ const styles = StyleSheet.create({
     marginBottom: 8,
   },
   devBuildCard: {
-    backgroundColor: '#fef3c7',
+    backgroundColor: '#f0f9ff',
     elevation: 2,
   },
   devBuildTitle: {
-    color: '#92400e',
+    color: '#0369a1',
     marginBottom: 8,
   },
   title: {

@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { View, StyleSheet, Alert } from 'react-native';
+import { View, StyleSheet, Alert, ScrollView } from 'react-native';
 import { Text, Card, Button, TextInput } from 'react-native-paper';
 import { useRoute, useNavigation } from '@react-navigation/native';
 import { StackNavigationProp } from '@react-navigation/stack';
@@ -63,7 +63,7 @@ export default function JoinPartyScreen() {
   };
 
   return (
-    <View style={styles.container}>
+    <ScrollView style={styles.container} contentContainerStyle={styles.contentContainer}>
       <Text variant="headlineSmall" style={styles.title}>
         Join Party
       </Text>
@@ -121,15 +121,18 @@ export default function JoinPartyScreen() {
           </Text>
         </Card.Content>
       </Card>
-    </View>
+    </ScrollView>
   );
 }
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    padding: 16,
     backgroundColor: '#f9fafb',
+  },
+  contentContainer: {
+    padding: 16,
+    flexGrow: 1,
   },
   title: {
     color: '#1f2937',
