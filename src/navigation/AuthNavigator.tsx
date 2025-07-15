@@ -1,25 +1,17 @@
-import React from 'react';
-import { createStackNavigator } from '@react-navigation/stack';
+import React, { useState } from 'react';
 import LoginScreen from '../screens/auth/LoginScreen';
 import RegisterScreen from '../screens/auth/RegisterScreen';
 
-export type AuthStackParamList = {
-  Login: undefined;
-  Register: undefined;
-};
-
-const Stack = createStackNavigator<AuthStackParamList>();
-
 export default function AuthNavigator() {
-  return (
-    <Stack.Navigator
-      initialRouteName="Login"
-      screenOptions={{
-        headerShown: false,
-      }}
-    >
-      <Stack.Screen name="Login" component={LoginScreen} />
-      <Stack.Screen name="Register" component={RegisterScreen} />
-    </Stack.Navigator>
-  );
+  const [currentScreen, setCurrentScreen] = useState<'Login' | 'Register'>('Login');
+
+  const navigation = {
+    navigate: (screen: 'Login' | 'Register') => setCurrentScreen(screen),
+  };
+
+  if (currentScreen === 'Login') {
+    return <LoginScreen navigation={navigation} />;
+  } else {
+    return <RegisterScreen navigation={navigation} />;
+  }
 }

@@ -1,5 +1,5 @@
 import React from 'react';
-import { createStackNavigator } from '@react-navigation/stack';
+import CustomNavigator from './CustomNavigator';
 import PlayerHomeScreen from '../screens/player/PlayerHomeScreen';
 import JoinPartyScreen from '../screens/player/JoinPartyScreen';
 import QRScannerScreen from '../screens/player/QRScannerScreen';
@@ -15,53 +15,22 @@ export type PlayerStackParamList = {
   PlayerParty: { partyId: string; teamId: string };
 };
 
-const Stack = createStackNavigator<PlayerStackParamList>();
+const routes = [
+  { name: 'PlayerHome', component: PlayerHomeScreen, title: 'Join Game' },
+  { name: 'JoinParty', component: JoinPartyScreen, title: 'Join Party' },
+  { name: 'QRScanner', component: QRScannerScreen, title: 'Scan QR Code' },
+  { name: 'TeamSelection', component: TeamSelectionScreen, title: 'Select Team' },
+  { name: 'PlayerGame', component: PlayerPartyScreen, title: 'Playing' },
+  { name: 'PlayerParty', component: PlayerPartyScreen, title: 'Playing' },
+];
 
 export default function PlayerNavigator() {
   return (
-    <Stack.Navigator
+    <CustomNavigator
+      routes={routes}
       initialRouteName="PlayerHome"
-      screenOptions={{
-        headerShown: true,
-        headerStyle: {
-          backgroundColor: '#10b981',
-        },
-        headerTintColor: 'white',
-        headerTitleStyle: {
-          fontWeight: 'bold',
-        },
-      }}
-    >
-      <Stack.Screen
-        name="PlayerHome"
-        component={PlayerHomeScreen}
-        options={{ title: 'Join Game' }}
-      />
-      <Stack.Screen
-        name="JoinParty"
-        component={JoinPartyScreen}
-        options={{ title: 'Join Party' }}
-      />
-      <Stack.Screen
-        name="QRScanner"
-        component={QRScannerScreen}
-        options={{ title: 'Scan QR Code' }}
-      />
-      <Stack.Screen
-        name="TeamSelection"
-        component={TeamSelectionScreen}
-        options={{ title: 'Select Team' }}
-      />
-      <Stack.Screen
-        name="PlayerGame"
-        component={PlayerPartyScreen}
-        options={{ title: 'Playing' }}
-      />
-      <Stack.Screen
-        name="PlayerParty"
-        component={PlayerPartyScreen}
-        options={{ title: 'Playing' }}
-      />
-    </Stack.Navigator>
+      headerStyle={{ backgroundColor: '#10b981' }}
+      headerTintColor="white"
+    />
   );
 }

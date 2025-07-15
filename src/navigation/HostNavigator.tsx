@@ -1,5 +1,5 @@
 import React from 'react';
-import { createStackNavigator } from '@react-navigation/stack';
+import CustomNavigator from './CustomNavigator';
 import HostHomeScreen from '../screens/host/HostHomeScreen';
 import CreatePartyScreen from '../screens/host/CreatePartyScreen';
 import PartySetupScreen from '../screens/host/PartySetupScreen';
@@ -16,56 +16,22 @@ export type HostStackParamList = {
   EnhancedLeaderboard: { partyId: string };
 };
 
-const Stack = createStackNavigator<HostStackParamList>();
+const routes = [
+  { name: 'HostHome', component: HostHomeScreen, title: 'Host Dashboard' },
+  { name: 'CreateParty', component: CreatePartyScreen, title: 'Create Party' },
+  { name: 'PartySetup', component: PartySetupScreen, title: 'Party Setup' },
+  { name: 'HostParty', component: HostPartyScreen, title: 'Host Party' },
+  { name: 'TVDisplay', component: TVDisplayScreen, title: 'TV Display', headerShown: false },
+  { name: 'EnhancedLeaderboard', component: EnhancedLeaderboardScreen, title: 'Enhanced Leaderboard' },
+];
 
 export default function HostNavigator() {
   return (
-    <Stack.Navigator
+    <CustomNavigator
+      routes={routes}
       initialRouteName="HostHome"
-      screenOptions={{
-        headerShown: true,
-        headerStyle: {
-          backgroundColor: '#6366f1',
-        },
-        headerTintColor: 'white',
-        headerTitleStyle: {
-          fontWeight: 'bold',
-        },
-      }}
-    >
-      <Stack.Screen
-        name="HostHome"
-        component={HostHomeScreen}
-        options={{ title: 'Host Dashboard' }}
-      />
-      <Stack.Screen
-        name="CreateParty"
-        component={CreatePartyScreen}
-        options={{ title: 'Create Party' }}
-      />
-      <Stack.Screen
-        name="PartySetup"
-        component={PartySetupScreen}
-        options={{ title: 'Party Setup' }}
-      />
-      <Stack.Screen
-        name="HostParty"
-        component={HostPartyScreen}
-        options={{ title: 'Host Party' }}
-      />
-      <Stack.Screen
-        name="TVDisplay"
-        component={TVDisplayScreen}
-        options={{ 
-          title: 'TV Display',
-          headerShown: false // Hide header for TV display
-        }}
-      />
-      <Stack.Screen
-        name="EnhancedLeaderboard"
-        component={EnhancedLeaderboardScreen}
-        options={{ title: 'Enhanced Leaderboard' }}
-      />
-    </Stack.Navigator>
+      headerStyle={{ backgroundColor: '#6366f1' }}
+      headerTintColor="white"
+    />
   );
 }
