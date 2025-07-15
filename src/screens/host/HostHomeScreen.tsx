@@ -134,7 +134,10 @@ export default function HostHomeScreen() {
   return (
     <View style={styles.container}>
       <Text variant="headlineSmall" style={styles.title}>
-        Your Trivia Parties
+        🚨 OTA UPDATE TEST - Build 210+ 🚨
+      </Text>
+      <Text variant="bodyMedium" style={styles.updateInfo}>
+        Navigation fix applied via over-the-air update
       </Text>
 
       {parties.length === 0 ? (
@@ -189,6 +192,13 @@ const styles = StyleSheet.create({
     padding: 16,
     paddingBottom: 8,
     color: '#1f2937',
+  },
+  updateInfo: {
+    paddingHorizontal: 16,
+    paddingBottom: 16,
+    color: '#059669',
+    textAlign: 'center',
+    fontStyle: 'italic',
   },
   listContainer: {
     padding: 16,
