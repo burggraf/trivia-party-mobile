@@ -6,14 +6,8 @@ import { StackNavigationProp } from '@react-navigation/stack';
 import { PlayerStackParamList } from '../../navigation/PlayerNavigator';
 import { PartyService } from '../../services/partyService';
 
-// Check if BarCodeScanner is available
-let isQRScannerAvailable = true;
-try {
-  require('expo-barcode-scanner');
-} catch (error) {
-  // BarCodeScanner not available (expected in Expo Go)
-  isQRScannerAvailable = false;
-}
+// QR Scanner temporarily disabled
+let isQRScannerAvailable = false;
 
 type Navigation = StackNavigationProp<PlayerStackParamList, 'PlayerHome'>;
 

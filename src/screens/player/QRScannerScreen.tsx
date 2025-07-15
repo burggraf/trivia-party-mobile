@@ -6,14 +6,7 @@ import { StackNavigationProp } from '@react-navigation/stack';
 import { PlayerStackParamList } from '../../navigation/PlayerNavigator';
 import { PartyService } from '../../services/partyService';
 
-// Dynamic import to handle cases where BarCodeScanner isn't available
-let BarCodeScanner: any = null;
-try {
-  BarCodeScanner = require('expo-barcode-scanner').BarCodeScanner;
-} catch (error) {
-  // BarCodeScanner not available (expected in Expo Go)
-  // Silently continue with manual entry fallback
-}
+// QR Scanner temporarily disabled - manual entry only
 
 type Navigation = StackNavigationProp<PlayerStackParamList, 'QRScanner'>;
 
@@ -30,18 +23,8 @@ export default function QRScannerScreen() {
   }, []);
 
   const requestCameraPermission = async () => {
-    try {
-      if (!BarCodeScanner) {
-        // BarCodeScanner not available, default to manual entry
-        setHasPermission(false);
-        return;
-      }
-      const { status } = await BarCodeScanner.requestPermissionsAsync();
-      setHasPermission(status === 'granted');
-    } catch (error) {
-      console.error('Error requesting camera permission:', error);
-      setHasPermission(false);
-    }
+    // QR Scanner temporarily disabled
+    setHasPermission(false);
   };
 
   const handleBarCodeScanned = ({ type, data }: { type: string; data: string }) => {
@@ -124,66 +107,7 @@ export default function QRScannerScreen() {
     );
   }
 
-  // Show scanner if permission granted and scanner is active
-  if (hasPermission && showScanner && BarCodeScanner) {
-    return (
-      <View style={styles.container}>
-        <BarCodeScanner
-          onBarCodeScanned={scanned ? undefined : handleBarCodeScanned}
-          style={StyleSheet.absoluteFillObject}
-        />
-        
-        <View style={styles.overlay}>
-          <View style={styles.topOverlay} />
-          <View style={styles.middleRow}>
-            <View style={styles.sideOverlay} />
-            <View style={styles.scannerBox}>
-              <View style={styles.cornerTopLeft} />
-              <View style={styles.cornerTopRight} />
-              <View style={styles.cornerBottomLeft} />
-              <View style={styles.cornerBottomRight} />
-            </View>
-            <View style={styles.sideOverlay} />
-          </View>
-          <View style={styles.bottomOverlay}>
-            <Card style={styles.instructionCard}>
-              <Card.Content>
-                <Text variant="bodyLarge" style={styles.instructionText}>
-                  {scanned || loading ? 'Processing...' : 'Point your camera at the QR code'}
-                </Text>
-                {(scanned || loading) && <ActivityIndicator color="#ffffff" style={styles.loader} />}
-              </Card.Content>
-            </Card>
-            
-            <View style={styles.buttonContainer}>
-              <Button
-                mode="outlined"
-                onPress={() => setShowScanner(false)}
-                style={styles.switchToManualButton}
-                buttonColor="rgba(255,255,255,0.1)"
-                textColor="#ffffff"
-                icon="keyboard"
-              >
-                Enter Code Manually
-              </Button>
-              
-              {scanned && (
-                <Button
-                  mode="outlined"
-                  onPress={() => setScanned(false)}
-                  style={styles.retryButton}
-                  buttonColor="rgba(255,255,255,0.1)"
-                  textColor="#ffffff"
-                >
-                  Try Again
-                </Button>
-              )}
-            </View>
-          </View>
-        </View>
-      </View>
-    );
-  }
+  // QR Scanner temporarily disabled - skip to manual entry
 
   return (
     <View style={styles.container}>
@@ -197,60 +121,16 @@ export default function QRScannerScreen() {
       </View>
 
       <View style={styles.content}>
-        {hasPermission && BarCodeScanner && (
-          <Card style={styles.card}>
-            <Card.Content>
-              <Text variant="titleMedium" style={styles.title}>
-                QR Code Scanner
-              </Text>
-              <Text variant="bodyMedium" style={styles.description}>
-                Use your camera to scan the QR code displayed by the party host for quick joining.
-              </Text>
-              <Button
-                mode="contained"
-                onPress={() => setShowScanner(true)}
-                style={styles.button}
-                icon="qrcode-scan"
-              >
-                Open QR Scanner
-              </Button>
-            </Card.Content>
-          </Card>
-        )}
-
-        {!BarCodeScanner && (
-          <Card style={styles.devBuildCard}>
-            <Card.Content>
-              <Text variant="titleMedium" style={styles.devBuildTitle}>
-                QR Scanner Not Available
-              </Text>
-              <Text variant="bodyMedium" style={styles.description}>
-                QR code scanning is not available in Expo Go development mode. For full QR functionality, use the production app. Manual code entry works perfectly!
-              </Text>
-            </Card.Content>
-          </Card>
-        )}
-
-        {!hasPermission && BarCodeScanner && (
-          <Card style={styles.permissionCard}>
-            <Card.Content>
-              <Text variant="titleMedium" style={styles.permissionTitle}>
-                Camera Permission Required
-              </Text>
-              <Text variant="bodyMedium" style={styles.description}>
-                To use QR code scanning, please grant camera permissions in your device settings.
-              </Text>
-              <Button
-                mode="outlined"
-                onPress={requestCameraPermission}
-                style={styles.button}
-                icon="camera"
-              >
-                Request Permission
-              </Button>
-            </Card.Content>
-          </Card>
-        )}
+        <Card style={styles.devBuildCard}>
+          <Card.Content>
+            <Text variant="titleMedium" style={styles.devBuildTitle}>
+              QR Scanner Temporarily Disabled
+            </Text>
+            <Text variant="bodyMedium" style={styles.description}>
+              QR code scanning will be available in the next build. For now, please use manual code entry below.
+            </Text>
+          </Card.Content>
+        </Card>
 
         <Card style={styles.card}>
           <Card.Content>
@@ -288,11 +168,7 @@ export default function QRScannerScreen() {
               How to Join
             </Text>
             <Text variant="bodyMedium" style={styles.infoText}>
-              {!BarCodeScanner 
-                ? "QR scanning requires the production app. Enter the party code manually below - it works just as well!"
-                : hasPermission 
-                  ? "Use the QR scanner above for quick joining, or enter the 6-character code manually."
-                  : "Enter the 6-character party code provided by your host. Enable camera permissions to use QR scanning."}
+              Enter the 6-character party code provided by your host. QR scanning will be enabled in the next app update.
             </Text>
           </Card.Content>
         </Card>
