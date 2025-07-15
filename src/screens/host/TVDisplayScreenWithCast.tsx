@@ -4,7 +4,7 @@ import { Text } from 'react-native-paper';
 import { PartyService } from '../../services/partyService';
 import { Database } from '../../types/database';
 import { supabase } from '../../lib/supabase';
-import NativeAirPlayButton from '../../components/host/NativeAirPlayButton';
+import SimpleAirPlayButton from '../../components/host/SimpleAirPlayButton';
 
 type Party = Database['public']['Tables']['parties']['Row'];
 type Team = Database['public']['Tables']['teams']['Row'];
@@ -47,7 +47,6 @@ export default function TVDisplayScreenWithCast({ navigation, route }: TVDisplay
     totalQuestions: 0,
     roundName: '',
   });
-  const [isCasting, setIsCasting] = useState(false);
 
   useEffect(() => {
     loadPartyData();
@@ -339,8 +338,7 @@ export default function TVDisplayScreenWithCast({ navigation, route }: TVDisplay
     <View style={styles.container}>
       {/* Cast Button */}
       <View style={styles.castHeader}>
-        <NativeAirPlayButton 
-          onAirPlayStatusChange={setIsCasting}
+        <SimpleAirPlayButton 
           style={styles.castButton}
         />
       </View>
@@ -355,16 +353,9 @@ export default function TVDisplayScreenWithCast({ navigation, route }: TVDisplay
         
         {/* Status Hint */}
         <View style={styles.hintContainer}>
-          {!isCasting && (
-            <Text variant="bodyMedium" style={styles.tapHint}>
-              Tap anywhere to return to host controls
-            </Text>
-          )}
-          {isCasting && (
-            <Text variant="bodyMedium" style={styles.castingHint}>
-              Content is being cast to your TV
-            </Text>
-          )}
+          <Text variant="bodyMedium" style={styles.tapHint}>
+            Tap anywhere to return to host controls
+          </Text>
         </View>
       </TouchableOpacity>
     </View>
@@ -710,11 +701,5 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     fontStyle: 'italic',
     opacity: 0.8,
-  },
-  castingHint: {
-    color: '#10b981',
-    textAlign: 'center',
-    fontStyle: 'italic',
-    opacity: 0.9,
   },
 });
