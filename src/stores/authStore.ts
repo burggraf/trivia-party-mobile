@@ -42,10 +42,10 @@ export const useAuthStore = create<AuthState>((set) => ({
 
       console.log('📡 Getting Supabase session...');
       
-      // Add timeout to prevent hanging
+      // Add timeout to prevent hanging (reduced to 2 seconds for faster failover)
       const sessionPromise = supabase.auth.getSession();
       const timeoutPromise = new Promise((_, reject) => {
-        setTimeout(() => reject(new Error('Supabase session timeout')), 5000);
+        setTimeout(() => reject(new Error('Supabase session timeout')), 2000);
       });
       
       const result = await Promise.race([sessionPromise, timeoutPromise]) as any;

@@ -17,10 +17,20 @@ export default function App() {
       try {
         console.log('🚀 App starting...');
         
-        // Initialize auth in background, don't block UI
-        await initialize().catch(error => {
+        // Add a failsafe timeout to prevent getting stuck
+        const initPromise = initialize().catch(error => {
           console.warn('Auth initialization failed, continuing in offline mode:', error);
         });
+        
+        // Maximum wait time of 3 seconds before showing app
+        const timeoutPromise = new Promise(resolve => {
+          setTimeout(() => {
+            console.log('⚠️ App initialization timeout, showing app anyway');
+            resolve(undefined);
+          }, 3000);
+        });
+        
+        await Promise.race([initPromise, timeoutPromise]);
         
         console.log('✅ App ready');
       } catch (e) {
@@ -37,12 +47,13 @@ export default function App() {
   useEffect(() => {
     async function hideSplash() {
       if (appIsReady) {
-        // This tells the splash screen to hide immediately! If we call this after
-        // `setAppIsReady`, then we may see a blank screen while the app is
-        // loading its initial state and rendering its first pixels. So instead,
-        // we hide the splash screen once we know the root view has already
-        // performed layout.
-        await SplashScreen.hideAsync();
+        try {
+          console.log('🎨 Hiding splash screen...');
+          await SplashScreen.hideAsync();
+          console.log('✅ Splash screen hidden');
+        } catch (error) {
+          console.warn('Error hiding splash screen:', error);
+        }
       }
     }
     hideSplash();
