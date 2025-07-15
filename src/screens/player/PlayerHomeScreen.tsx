@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { View, StyleSheet, Alert } from 'react-native';
+import { View, StyleSheet, Alert, ScrollView } from 'react-native';
 import { Text, TextInput, Button, Card, Divider } from 'react-native-paper';
 import { useNavigation } from '@react-navigation/native';
 import { StackNavigationProp } from '@react-navigation/stack';
@@ -56,7 +56,7 @@ export default function PlayerHomeScreen() {
   };
 
   return (
-    <View style={styles.container}>
+    <ScrollView style={styles.container} contentContainerStyle={styles.contentContainer}>
       <Text variant="headlineSmall" style={styles.title}>
         Join Trivia Party
       </Text>
@@ -131,10 +131,10 @@ export default function PlayerHomeScreen() {
         <Card style={styles.devBuildCard}>
           <Card.Content>
             <Text variant="titleMedium" style={styles.devBuildTitle}>
-              QR Scanner Unavailable in Expo Go
+              🚨 BUILD 209 - QR DISABLED 🚨
             </Text>
             <Text variant="bodyMedium" style={styles.description}>
-              QR code scanning requires camera access that's not available in Expo Go. Use manual entry below to join parties.
+              QR code scanning will be enabled in the next app update. Manual code entry works perfectly!
             </Text>
           </Card.Content>
         </Card>
@@ -161,15 +161,18 @@ export default function PlayerHomeScreen() {
           </View>
         </Card.Content>
       </Card>
-    </View>
+    </ScrollView>
   );
 }
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    padding: 16,
     backgroundColor: '#f9fafb',
+  },
+  contentContainer: {
+    padding: 16,
+    flexGrow: 1,
   },
   title: {
     color: '#1f2937',
@@ -215,12 +218,12 @@ const styles = StyleSheet.create({
     paddingVertical: 8,
   },
   devBuildCard: {
-    backgroundColor: '#fef3c7',
+    backgroundColor: '#f0f9ff',
     elevation: 2,
     marginBottom: 16,
   },
   devBuildTitle: {
-    color: '#92400e',
+    color: '#0369a1',
     marginBottom: 8,
   },
   infoCard: {
