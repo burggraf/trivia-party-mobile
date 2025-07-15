@@ -28,11 +28,15 @@ export default function CustomNavigator({
 }: CustomNavigatorProps) {
   const [currentRoute, setCurrentRoute] = useState(initialRouteName);
   const [routeHistory, setRouteHistory] = useState<string[]>([initialRouteName]);
+  const [routeParams, setRouteParams] = useState<{ [key: string]: any }>({});
 
   const navigation = {
     navigate: (routeName: string, params?: any) => {
       setCurrentRoute(routeName);
       setRouteHistory(prev => [...prev, routeName]);
+      if (params) {
+        setRouteParams(prev => ({ ...prev, [routeName]: params }));
+      }
     },
     goBack: () => {
       if (routeHistory.length > 1) {
@@ -71,7 +75,11 @@ export default function CustomNavigator({
         </View>
       )}
       <View style={styles.content}>
-        <CurrentComponent navigation={navigation} {...screenProps} />
+        <CurrentComponent 
+          navigation={navigation} 
+          route={{ params: routeParams[currentRoute] || {} }}
+          {...screenProps} 
+        />
       </View>
     </View>
   );
