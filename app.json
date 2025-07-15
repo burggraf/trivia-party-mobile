@@ -19,7 +19,7 @@
         "NSCameraUsageDescription": "This app uses the camera to scan QR codes for joining trivia parties.",
         "ITSAppUsesNonExemptEncryption": false
       },
-      "buildNumber": "12",
+      "buildNumber": "13",
       "bundleIdentifier": "com.azabab.triviaparty"
     },
     "android": {
@@ -38,14 +38,6 @@
       "favicon": "./assets/favicon.png"
     },
     "plugins": [
-      [
-        "expo-splash-screen",
-        {
-          "image": "./assets/splash-icon.png",
-          "resizeMode": "contain",
-          "backgroundColor": "#ffffff"
-        }
-      ],
       "expo-asset"
     ],
     "extra": {
