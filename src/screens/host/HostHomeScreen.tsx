@@ -1,17 +1,13 @@
 import React, { useState, useEffect } from 'react';
 import { View, StyleSheet, FlatList, RefreshControl } from 'react-native';
 import { Text, Card, Button, FAB, Chip } from 'react-native-paper';
-import { useNavigation } from '@react-navigation/native';
-import { StackNavigationProp } from '@react-navigation/stack';
 import { HostStackParamList } from '../../navigation/HostNavigator';
 import { PartyService } from '../../services/partyService';
 import { Database } from '../../types/database';
 
 type Party = Database['public']['Tables']['parties']['Row'];
-type Navigation = StackNavigationProp<HostStackParamList, 'HostHome'>;
 
-export default function HostHomeScreen() {
-  const navigation = useNavigation<Navigation>();
+export default function HostHomeScreen({ navigation }: { navigation: any }) {
   const [parties, setParties] = useState<Party[]>([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);

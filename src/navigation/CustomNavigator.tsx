@@ -32,6 +32,7 @@ export default function CustomNavigator({
 
   const navigation = {
     navigate: (routeName: string, params?: any) => {
+      console.log('🚨 NAVIGATION CALLED:', routeName, params);
       setCurrentRoute(routeName);
       setRouteHistory(prev => [...prev, routeName]);
       if (params) {
