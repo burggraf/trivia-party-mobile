@@ -7,6 +7,7 @@
     "icon": "./assets/icon.png",
     "userInterfaceStyle": "light",
     "scheme": "trivia-party-mobile",
+    "newArchEnabled": true,
     "splash": {
       "image": "./assets/splash-icon.png",
       "resizeMode": "contain",
@@ -18,7 +19,7 @@
         "NSCameraUsageDescription": "This app uses the camera to scan QR codes for joining trivia parties.",
         "ITSAppUsesNonExemptEncryption": false
       },
-      "buildNumber": "5",
+      "buildNumber": "6",
       "bundleIdentifier": "com.azabab.triviaparty"
     },
     "android": {
@@ -34,7 +35,17 @@
     "web": {
       "favicon": "./assets/favicon.png"
     },
-    "plugins": [],
+    "plugins": [
+      [
+        "expo-splash-screen",
+        {
+          "image": "./assets/splash-icon.png",
+          "resizeMode": "contain",
+          "backgroundColor": "#ffffff"
+        }
+      ],
+      "expo-asset"
+    ],
     "extra": {
       "eas": {
         "projectId": "c660859d-3955-4aee-adc5-224ba5c1bac1"
