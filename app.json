@@ -43,6 +43,12 @@
       "expo-asset",
       "expo-updates"
     ],
+    "runtimeVersion": {
+      "policy": "appVersion"
+    },
+    "updates": {
+      "url": "https://u.expo.dev/c660859d-3955-4aee-adc5-224ba5c1bac1"
+    },
     "extra": {
       "eas": {
         "projectId": "c660859d-3955-4aee-adc5-224ba5c1bac1"
