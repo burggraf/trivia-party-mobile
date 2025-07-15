@@ -41,9 +41,7 @@
     },
     "plugins": [
       "expo-asset",
-      "expo-updates",
-      "expo-av",
-      "expo-media-library"
+      "expo-updates"
     ],
     "runtimeVersion": {
       "policy": "appVersion"
