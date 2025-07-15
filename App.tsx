@@ -14,31 +14,18 @@ export default function App() {
 
   useEffect(() => {
     async function prepare() {
-      try {
-        console.log('🚀 App starting...');
-        
-        // Add a failsafe timeout to prevent getting stuck
-        const initPromise = initialize().catch(error => {
-          console.warn('Auth initialization failed, continuing in offline mode:', error);
-        });
-        
-        // Maximum wait time of 3 seconds before showing app
-        const timeoutPromise = new Promise(resolve => {
-          setTimeout(() => {
-            console.log('⚠️ App initialization timeout, showing app anyway');
-            resolve(undefined);
-          }, 3000);
-        });
-        
-        await Promise.race([initPromise, timeoutPromise]);
-        
-        console.log('✅ App ready');
-      } catch (e) {
-        console.warn('App preparation error:', e);
-      } finally {
-        // Tell the application to render
+      console.log('🚀 App starting...');
+      
+      // Initialize auth in background - don't await it, just fire and forget
+      initialize().catch(error => {
+        console.warn('Auth initialization failed, app continues in offline mode:', error);
+      });
+      
+      // Show app immediately after a short delay for splash screen
+      setTimeout(() => {
+        console.log('✅ App ready - showing UI');
         setAppIsReady(true);
-      }
+      }, 1000);
     }
 
     prepare();
