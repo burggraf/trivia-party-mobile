@@ -65,7 +65,7 @@ export default function JoinPartyScreen() {
   return (
     <ScrollView style={styles.container} contentContainerStyle={styles.contentContainer}>
       <Text variant="headlineSmall" style={styles.title}>
-        Join Party
+        🚨 TEST BUILD 207 - JOIN PARTY 🚨
       </Text>
       <Text variant="bodyLarge" style={styles.subtitle}>
         {scannedCode 

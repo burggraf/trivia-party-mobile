@@ -124,7 +124,7 @@ export default function QRScannerScreen() {
         <Card style={styles.devBuildCard}>
           <Card.Content>
             <Text variant="titleMedium" style={styles.devBuildTitle}>
-              QR Scanner Temporarily Disabled
+              🚨 TEST BUILD 207 - QR DISABLED 🚨
             </Text>
             <Text variant="bodyMedium" style={styles.description}>
               QR code scanning will be available in the next build. For now, please use manual code entry below.
