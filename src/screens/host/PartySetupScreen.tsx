@@ -1,8 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { View, StyleSheet, ScrollView, FlatList } from 'react-native';
 import { Text, Card, Button, FAB, Chip, Divider } from 'react-native-paper';
-import { useRoute, useNavigation } from '@react-navigation/native';
-import { StackNavigationProp } from '@react-navigation/stack';
 import QRCode from 'react-native-qrcode-svg';
 import { HostStackParamList } from '../../navigation/HostNavigator';
 import { PartyService } from '../../services/partyService';
@@ -13,9 +11,7 @@ type Party = Database['public']['Tables']['parties']['Row'];
 type Round = Database['public']['Tables']['rounds']['Row'];
 type Navigation = StackNavigationProp<HostStackParamList, 'PartySetup'>;
 
-export default function PartySetupScreen() {
-  const route = useRoute();
-  const navigation = useNavigation<Navigation>();
+export default function PartySetupScreen({ navigation, route }: { navigation: any; route: any }) {
   const { partyId } = route.params as { partyId: string };
 
   const [party, setParty] = useState<Party | null>(null);

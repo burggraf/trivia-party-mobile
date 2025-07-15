@@ -1,8 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { View, StyleSheet, ScrollView, Alert } from 'react-native';
 import { Text, Card, Button, Chip, Divider } from 'react-native-paper';
-import { useRoute, useNavigation, useFocusEffect } from '@react-navigation/native';
-import { StackNavigationProp } from '@react-navigation/stack';
+import { useFocusEffect } from '@react-navigation/native';
 import { HostStackParamList } from '../../navigation/HostNavigator';
 import { PartyService } from '../../services/partyService';
 import { Database } from '../../types/database';
@@ -22,9 +21,7 @@ interface GameState {
 
 type Navigation = StackNavigationProp<HostStackParamList, 'HostParty'>;
 
-export default function HostPartyScreen() {
-  const route = useRoute();
-  const navigation = useNavigation<Navigation>();
+export default function HostPartyScreen({ navigation, route }: { navigation: any; route: any }) {
   const { partyId } = route.params as { partyId: string };
 
   const [party, setParty] = useState<Party | null>(null);

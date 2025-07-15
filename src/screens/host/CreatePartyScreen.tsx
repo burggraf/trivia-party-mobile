@@ -10,8 +10,7 @@ import DateTimePicker from '@react-native-community/datetimepicker';
 
 type Navigation = StackNavigationProp<HostStackParamList, 'CreateParty'>;
 
-export default function CreatePartyScreen() {
-  const navigation = useNavigation<Navigation>();
+export default function CreatePartyScreen({ navigation }: { navigation: any }) {
   const { user } = useAuthStore();
   const [loading, setLoading] = useState(false);
 
