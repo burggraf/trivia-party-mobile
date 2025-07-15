@@ -31,19 +31,23 @@ export default function SimpleAirPlayButton({ disabled, style }: SimpleAirPlayBu
   };
 
   return (
-    <IconButton
-      icon="airplay"
-      iconColor="#60a5fa"
-      size={24}
+    <Button
+      mode="contained"
       onPress={handleAirPlayPress}
       disabled={disabled}
+      icon="airplay"
       style={[
         {
-          backgroundColor: 'rgba(96, 165, 250, 0.1)',
+          backgroundColor: '#60a5fa',
           borderRadius: 8,
+          minWidth: 100,
         },
         style
       ]}
-    />
+      labelStyle={{ color: 'white', fontSize: 14 }}
+      contentStyle={{ paddingHorizontal: 8, paddingVertical: 4 }}
+    >
+      Cast
+    </Button>
   );
 }

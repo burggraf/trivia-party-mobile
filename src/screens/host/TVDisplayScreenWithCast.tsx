@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { View, StyleSheet, Dimensions, TouchableOpacity } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Text } from 'react-native-paper';
 import { PartyService } from '../../services/partyService';
 import { Database } from '../../types/database';
@@ -30,6 +31,7 @@ interface TVDisplayScreenWithCastProps {
 
 export default function TVDisplayScreenWithCast({ navigation, route }: TVDisplayScreenWithCastProps) {
   const { partyId } = route.params as { partyId: string };
+  const insets = useSafeAreaInsets();
 
   const [party, setParty] = useState<Party | null>(null);
   const [teams, setTeams] = useState<Team[]>([]);
@@ -337,7 +339,7 @@ export default function TVDisplayScreenWithCast({ navigation, route }: TVDisplay
   return (
     <View style={styles.container}>
       {/* Cast Button */}
-      <View style={styles.castHeader}>
+      <View style={[styles.castHeader, { top: insets.top + 20 }]}>
         <SimpleAirPlayButton 
           style={styles.castButton}
         />
@@ -372,15 +374,15 @@ const styles = StyleSheet.create({
   },
   castHeader: {
     position: 'absolute',
-    top: 20,
     right: 20,
     zIndex: 10,
   },
   castButton: {
-    backgroundColor: 'rgba(30, 41, 59, 0.9)',
-    borderRadius: 8,
-    paddingHorizontal: 16,
-    paddingVertical: 8,
+    elevation: 3,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.25,
+    shadowRadius: 3.84,
   },
   contentWrapper: {
     flex: 1,
