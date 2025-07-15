@@ -1,0 +1,192 @@
+Incident Identifier: 12CFCF47-7880-4D5C-8D74-66DCA893197C
+Distributor ID:      com.apple.TestFlight
+Hardware Model:      iPhone15,3
+Process:             triviapartymobile [55385]
+Path:                /private/var/containers/Bundle/Application/307103FF-83E7-4D0E-BB9B-0DB8D746570B/triviapartymobile.app/triviapartymobile
+Identifier:          com.azabab.triviaparty
+Version:             1.0.0 (16)
+AppStoreTools:       16F3
+AppVariant:          1:iPhone15,3:18
+Beta:                YES
+Code Type:           ARM-64 (Native)
+Role:                Foreground
+Parent Process:      launchd [1]
+Coalition:           com.azabab.triviaparty [50346]
+
+Date/Time:           2025-07-14 19:51:53.9497 -0700
+Launch Time:         2025-07-14 19:51:53.3482 -0700
+OS Version:          iPhone OS 18.5 (22F76)
+Release Type:        User
+Baseband Version:    3.60.02
+Report Version:      104
+
+Exception Type:  EXC_CRASH (SIGABRT)
+Exception Codes: 0x0000000000000000, 0x0000000000000000
+Termination Reason: SIGNAL 6 Abort trap: 6
+Terminating Process: triviapartymobile [55385]
+
+Triggered by Thread:  2
+
+Last Exception Backtrace:
+0   CoreFoundation                	0x18d6c721c __exceptionPreprocess + 164 (NSException.m:249)
+1   libobjc.A.dylib               	0x18ab61abc objc_exception_throw + 88 (objc-exception.mm:356)
+2   CoreFoundation                	0x18d6c95fc -[NSException raise] + 16 (NSException.m:129)
+3   triviapartymobile             	0x1020a2374 0x102058000 + 303988
+4   triviapartymobile             	0x1020a12b8 0x102058000 + 299704
+5   triviapartymobile             	0x1020a2760 0x102058000 + 304992
+6   triviapartymobile             	0x102074768 0x102058000 + 116584
+7   libdispatch.dylib             	0x195538aac _dispatch_call_block_and_release + 32 (init.c:1575)
+8   libdispatch.dylib             	0x195552584 _dispatch_client_callout + 16 (client_callout.mm:85)
+9   libdispatch.dylib             	0x1955412d0 _dispatch_lane_serial_drain + 740 (queue.c:3939)
+10  libdispatch.dylib             	0x195541dac _dispatch_lane_invoke + 388 (queue.c:4030)
+11  libdispatch.dylib             	0x19554c1dc _dispatch_root_queue_drain_deferred_wlh + 292 (queue.c:7198)
+12  libdispatch.dylib             	0x19554ba60 _dispatch_workloop_worker_thread + 540 (queue.c:6792)
+13  libsystem_pthread.dylib       	0x217cd0a0c _pthread_wqthread + 292 (pthread.c:2696)
+14  libsystem_pthread.dylib       	0x217cd0aac start_wqthread + 8
+
+Thread 0 name:
+Thread 0:
+0   libsystem_kernel.dylib        	0x00000001de7cbce4 mach_msg2_trap + 8
+1   libsystem_kernel.dylib        	0x00000001de7cf39c mach_msg2_internal + 76 (mach_msg.c:201)
+2   libsystem_kernel.dylib        	0x00000001de7cf2b8 mach_msg_overwrite + 428 (mach_msg.c:0)
+3   libsystem_kernel.dylib        	0x00000001de7cf100 mach_msg + 24 (mach_msg.c:323)
+4   CoreFoundation                	0x000000018d5be900 __CFRunLoopServiceMachPort + 160 (CFRunLoop.c:2637)
+5   CoreFoundation                	0x000000018d5bd1f0 __CFRunLoopRun + 1208 (CFRunLoop.c:3021)
+6   CoreFoundation                	0x000000018d5bec3c CFRunLoopRunSpecific + 572 (CFRunLoop.c:3434)
+7   GraphicsServices              	0x00000001da79d454 GSEventRunModal + 168 (GSEvent.c:2196)
+8   UIKitCore                     	0x000000018ffd1274 -[UIApplication _run] + 816 (UIApplication.m:3845)
+9   UIKitCore                     	0x000000018ff9ca28 UIApplicationMain + 336 (UIApplication.m:5540)
+10  triviapartymobile             	0x000000010205d760 0x102058000 + 22368
+11  dyld                          	0x00000001b4493f08 start + 6040 (dyldMain.cpp:1450)
+
+Thread 1:
+0   libsystem_pthread.dylib       	0x0000000217cd0aa4 start_wqthread + 0
+
+Thread 2 name:
+Thread 2 Crashed:
+0   libsystem_kernel.dylib        	0x00000001de7d61dc __pthread_kill + 8
+1   libsystem_pthread.dylib       	0x0000000217cd7c60 pthread_kill + 268 (pthread.c:1721)
+2   libsystem_c.dylib             	0x00000001955f42d0 abort + 124 (abort.c:122)
+3   libc++abi.dylib               	0x0000000217c015a0 abort_message + 132 (abort_message.cpp:78)
+4   libc++abi.dylib               	0x0000000217beff10 demangling_terminate_handler() + 344 (cxa_default_handlers.cpp:77)
+5   libobjc.A.dylib               	0x000000018ab63bf8 _objc_terminate() + 156 (objc-exception.mm:496)
+6   libc++abi.dylib               	0x0000000217c008b4 std::__terminate(void (*)()) + 16 (cxa_handlers.cpp:59)
+7   libc++abi.dylib               	0x0000000217c03e1c __cxxabiv1::failed_throw(__cxxabiv1::__cxa_exception*) + 88 (cxa_exception.cpp:152)
+8   libc++abi.dylib               	0x0000000217c03dc4 __cxa_throw + 92 (cxa_exception.cpp:299)
+9   libobjc.A.dylib               	0x000000018ab61c24 objc_exception_throw + 448 (objc-exception.mm:385)
+10  CoreFoundation                	0x000000018d6c95fc -[NSException raise] + 16 (NSException.m:129)
+11  triviapartymobile             	0x00000001020a2374 0x102058000 + 303988
+12  triviapartymobile             	0x00000001020a12b8 0x102058000 + 299704
+13  triviapartymobile             	0x00000001020a2760 0x102058000 + 304992
+14  triviapartymobile             	0x0000000102074768 0x102058000 + 116584
+15  libdispatch.dylib             	0x0000000195538aac _dispatch_call_block_and_release + 32 (init.c:1575)
+16  libdispatch.dylib             	0x0000000195552584 _dispatch_client_callout + 16 (client_callout.mm:85)
+17  libdispatch.dylib             	0x00000001955412d0 _dispatch_lane_serial_drain + 740 (queue.c:3939)
+18  libdispatch.dylib             	0x0000000195541dac _dispatch_lane_invoke + 388 (queue.c:4030)
+19  libdispatch.dylib             	0x000000019554c1dc _dispatch_root_queue_drain_deferred_wlh + 292 (queue.c:7198)
+20  libdispatch.dylib             	0x000000019554ba60 _dispatch_workloop_worker_thread + 540 (queue.c:6792)
+21  libsystem_pthread.dylib       	0x0000000217cd0a0c _pthread_wqthread + 292 (pthread.c:2696)
+22  libsystem_pthread.dylib       	0x0000000217cd0aac start_wqthread + 8
+
+Thread 3:
+0   libsystem_pthread.dylib       	0x0000000217cd0aa4 start_wqthread + 0
+
+Thread 4:
+0   libsystem_pthread.dylib       	0x0000000217cd0aa4 start_wqthread + 0
+
+Thread 5:
+0   libsystem_pthread.dylib       	0x0000000217cd0aa4 start_wqthread + 0
+
+Thread 6:
+0   libsystem_pthread.dylib       	0x0000000217cd0aa4 start_wqthread + 0
+
+Thread 7:
+0   libsystem_pthread.dylib       	0x0000000217cd0aa4 start_wqthread + 0
+
+Thread 8:
+0   libsystem_pthread.dylib       	0x0000000217cd0aa4 start_wqthread + 0
+
+Thread 9 name:
+Thread 9:
+0   libsystem_kernel.dylib        	0x00000001de7cbce4 mach_msg2_trap + 8
+1   libsystem_kernel.dylib        	0x00000001de7cf39c mach_msg2_internal + 76 (mach_msg.c:201)
+2   libsystem_kernel.dylib        	0x00000001de7cf2b8 mach_msg_overwrite + 428 (mach_msg.c:0)
+3   libsystem_kernel.dylib        	0x00000001de7cf100 mach_msg + 24 (mach_msg.c:323)
+4   CoreFoundation                	0x000000018d5be900 __CFRunLoopServiceMachPort + 160 (CFRunLoop.c:2637)
+5   CoreFoundation                	0x000000018d5bd1f0 __CFRunLoopRun + 1208 (CFRunLoop.c:3021)
+6   CoreFoundation                	0x000000018d5bec3c CFRunLoopRunSpecific + 572 (CFRunLoop.c:3434)
+7   Foundation                    	0x000000018c23679c -[NSRunLoop(NSRunLoop) runMode:beforeDate:] + 212 (NSRunLoop.m:375)
+8   Foundation                    	0x000000018c23c020 -[NSRunLoop(NSRunLoop) runUntilDate:] + 64 (NSRunLoop.m:422)
+9   UIKitCore                     	0x000000018ffbb56c -[UIEventFetcher threadMain] + 424 (UIEventFetcher.m:1351)
+10  Foundation                    	0x000000018c29c804 __NSThread__start__ + 732 (NSThread.m:991)
+11  libsystem_pthread.dylib       	0x0000000217cd3344 _pthread_start + 136 (pthread.c:931)
+12  libsystem_pthread.dylib       	0x0000000217cd0ab8 thread_start + 8
+
+Thread 10:
+0   libsystem_pthread.dylib       	0x0000000217cd0aa4 start_wqthread + 0
+
+Thread 11:
+0   libsystem_pthread.dylib       	0x0000000217cd0aa4 start_wqthread + 0
+
+Thread 12:
+0   libsystem_pthread.dylib       	0x0000000217cd0aa4 start_wqthread + 0
+
+Thread 13:
+0   libsystem_pthread.dylib       	0x0000000217cd0aa4 start_wqthread + 0
+
+Thread 14 name:
+Thread 14:
+0   libsystem_kernel.dylib        	0x00000001de7cbce4 mach_msg2_trap + 8
+1   libsystem_kernel.dylib        	0x00000001de7cf39c mach_msg2_internal + 76 (mach_msg.c:201)
+2   libsystem_kernel.dylib        	0x00000001de7cf2b8 mach_msg_overwrite + 428 (mach_msg.c:0)
+3   libsystem_kernel.dylib        	0x00000001de7cf100 mach_msg + 24 (mach_msg.c:323)
+4   CoreFoundation                	0x000000018d5be900 __CFRunLoopServiceMachPort + 160 (CFRunLoop.c:2637)
+5   CoreFoundation                	0x000000018d5bd1f0 __CFRunLoopRun + 1208 (CFRunLoop.c:3021)
+6   CoreFoundation                	0x000000018d5bec3c CFRunLoopRunSpecific + 572 (CFRunLoop.c:3434)
+7   triviapartymobile             	0x0000000102412b74 0x102058000 + 3910516
+8   Foundation                    	0x000000018c29c804 __NSThread__start__ + 732 (NSThread.m:991)
+9   libsystem_pthread.dylib       	0x0000000217cd3344 _pthread_start + 136 (pthread.c:931)
+10  libsystem_pthread.dylib       	0x0000000217cd0ab8 thread_start + 8
+
+Thread 15 name:
+Thread 15:
+0   libsystem_kernel.dylib        	0x00000001de7d1438 __psynch_cvwait + 8
+1   libsystem_pthread.dylib       	0x0000000217cd1e50 _pthread_cond_wait + 984 (pthread_cond.c:862)
+2   libc++.1.dylib                	0x000000019e0b12c4 std::__1::condition_variable::wait(std::__1::unique_lock<std::__1::mutex>&) + 32 (condition_variable.cpp:30)
+3   hermes                        	0x0000000103014e98 hermes::vm::HadesGC::Executor::worker() + 116
+4   hermes                        	0x0000000103014e00 void* std::__1::__thread_proxy[abi:v160006]<std::__1::tuple<std::__1::unique_ptr<std::__1::__thread_struct, std::__1::default_delete<std::__1::__thread_struct>>, hermes::vm::HadesGC::Executor::Exec... + 44
+5   libsystem_pthread.dylib       	0x0000000217cd3344 _pthread_start + 136 (pthread.c:931)
+6   libsystem_pthread.dylib       	0x0000000217cd0ab8 thread_start + 8
+
+
+Thread 2 crashed with ARM Thread State (64-bit):
+    x0: 0x0000000000000000   x1: 0x0000000000000000   x2: 0x0000000000000000   x3: 0x0000000000000000
+    x4: 0x0000000217c05fdb   x5: 0x000000016deb9520   x6: 0x000000000000006e   x7: 0x36c9504ef0041f20
+    x8: 0xc1ada6c8a1967008   x9: 0xc1ada6c9cc7dc008  x10: 0x0000000000000051  x11: 0x000000000000000b
+   x12: 0x000000000000000b  x13: 0x000000018da68494  x14: 0x0000000000000001  x15: 0xffffffffb00007ff
+   x16: 0x0000000000000148  x17: 0x000000016debb000  x18: 0x0000000000000000  x19: 0x0000000000000006
+   x20: 0x0000000000001403  x21: 0x000000016debb0e0  x22: 0x00000001f5e14000  x23: 0x0000000103e2b450
+   x24: 0x0000000108c71c80  x25: 0x0000000108d44600  x26: 0x0000000000000038  x27: 0xc00000000000055f
+   x28: 0x00000001f9e1bab8   fp: 0x000000016deb9490   lr: 0x0000000217cd7c60
+    sp: 0x000000016deb9470   pc: 0x00000001de7d61dc cpsr: 0x40001000
+   esr: 0x56000080  Address size fault
+
+
+Binary Images:
+        0x102058000 -         0x10263bfff triviapartymobile arm64  <cff2ec6c06a7351e9a8b5ffe877bf69d> /var/containers/Bundle/Application/307103FF-83E7-4D0E-BB9B-0DB8D746570B/triviapartymobile.app/triviapartymobile
+        0x1029d0000 -         0x1029dbfff libobjc-trampolines.dylib arm64e  <9136d8ba22ff3f129caddfc4c6dc51de> /private/preboot/Cryptexes/OS/usr/lib/libobjc-trampolines.dylib
+        0x102f48000 -         0x103147fff hermes arm64  <b810dbce71ae38ca8fb43b671091c81b> /private/var/containers/Bundle/Application/307103FF-83E7-4D0E-BB9B-0DB8D746570B/triviapartymobile.app/Frameworks/hermes.framework/hermes
+        0x18ab30000 -         0x18ab81bb3 libobjc.A.dylib arm64e  <ed7c5fc7ddc734249c44db56f51b8be2> /usr/lib/libobjc.A.dylib
+        0x18c227000 -         0x18ce9addf Foundation arm64e  <34de055d8683380a9198c3347211d13d> /System/Library/Frameworks/Foundation.framework/Foundation
+        0x18d5ad000 -         0x18db29fff CoreFoundation arm64e  <7821f73c378b3a10be90ef526b7dba93> /System/Library/Frameworks/CoreFoundation.framework/CoreFoundation
+        0x18fe9c000 -         0x191dddb5f UIKitCore arm64e  <96636f64106f30c8a78082dcebb0f443> /System/Library/PrivateFrameworks/UIKitCore.framework/UIKitCore
+        0x195537000 -         0x19557cb1f libdispatch.dylib arm64e  <395da84f715d334e8d41a16cd93fc83c> /usr/lib/system/libdispatch.dylib
+        0x19557d000 -         0x1955fc8ef libsystem_c.dylib arm64e  <93f93d7c245f3395822dec61ffae79cf> /usr/lib/system/libsystem_c.dylib
+        0x19e090000 -         0x19e11fff7 libc++.1.dylib arm64e  <d67033dd24503cd8b76caac221a7fb80> /usr/lib/libc++.1.dylib
+        0x1b4455000 -         0x1b44ef857 dyld arm64e  <86d5253d4fd136f3b4ab25982c90cbf4> /usr/lib/dyld
+        0x1da79c000 -         0x1da7a4c7f GraphicsServices arm64e  <5ba62c226d3731999dfd0e0f7abebfa9> /System/Library/PrivateFrameworks/GraphicsServices.framework/GraphicsServices
+        0x1de7cb000 -         0x1de804ebf libsystem_kernel.dylib arm64e  <9e195be11733345ea9bf50d0d7059647> /usr/lib/system/libsystem_kernel.dylib
+        0x217beb000 -         0x217c08fff libc++abi.dylib arm64e  <a360ea66d985389394b96bba7bd8a6df> /usr/lib/libc++abi.dylib
+        0x217cd0000 -         0x217cdc3f3 libsystem_pthread.dylib arm64e  <b37430d8e3af33e481e1faed9ee26e8a> /usr/lib/system/libsystem_pthread.dylib
+
+EOF
