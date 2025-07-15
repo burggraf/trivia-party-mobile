@@ -41,13 +41,7 @@
     },
     "plugins": [
       "expo-asset",
-      "expo-updates",
-      [
-        "expo-barcode-scanner",
-        {
-          "cameraPermission": "Allow $(PRODUCT_NAME) to access your camera to scan QR codes for joining trivia parties."
-        }
-      ]
+      "expo-updates"
     ],
     "runtimeVersion": {
       "policy": "appVersion"
