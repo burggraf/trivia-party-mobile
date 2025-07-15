@@ -21,7 +21,7 @@ export const useAuthStore = create<AuthState>((set) => ({
   user: null,
   session: null,
   loading: false,
-  initialized: false,
+  initialized: true, // Start as initialized to prevent blocking
 
   initialize: async () => {
     try {
