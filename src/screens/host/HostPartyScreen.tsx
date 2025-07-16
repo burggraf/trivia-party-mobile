@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { View, StyleSheet, ScrollView, Alert } from 'react-native';
 import { Text, Card, Button, Chip, Divider } from 'react-native-paper';
 import { useFocusEffect } from '@react-navigation/native';
@@ -13,16 +13,29 @@ type Party = Database['public']['Tables']['parties']['Row'];
 type Round = Database['public']['Tables']['rounds']['Row'];
 type Team = Database['public']['Tables']['teams']['Row'];
 
+enum GamePhase {
+  ROUND_INTRO = 'ROUND_INTRO',
+  QUESTION_DISPLAY = 'QUESTION_DISPLAY', 
+  QUESTION_RESULTS = 'QUESTION_RESULTS',
+  ROUND_COMPLETE = 'ROUND_COMPLETE',
+  GAME_COMPLETE = 'GAME_COMPLETE',
+  GAME_THANKS = 'GAME_THANKS'
+}
+
 interface GameState {
   currentRound: number;
   currentQuestion: number;
   totalQuestions: number;
-  isShowingResults: boolean;
+  gamePhase: GamePhase;
+  currentRoundData: {
+    name: string;
+    id: string;
+    questionCount: number;
+  } | null;
 }
 
-type Navigation = StackNavigationProp<HostStackParamList, 'HostParty'>;
 
-export default function HostPartyScreen({ navigation, route }: { navigation: any; route: any }) {
+export default function HostPartyScreen({ navigation, route, onGameProgression }: { navigation: any; route: any; onGameProgression?: (handler: (() => void) | null) => void }) {
   const insets = useSafeAreaInsets();
   const { partyId } = route.params as { partyId: string };
 
@@ -33,15 +46,228 @@ export default function HostPartyScreen({ navigation, route }: { navigation: any
     currentRound: 1,
     currentQuestion: 1,
     totalQuestions: 0,
-    isShowingResults: false,
+    gamePhase: GamePhase.ROUND_INTRO,
+    currentRoundData: null,
   });
+  const gameStateRef = useRef<GameState>(gameState);
+  
+  // Keep ref in sync with state
+  useEffect(() => {
+    gameStateRef.current = gameState;
+  }, [gameState]);
+  
   const [currentQuestion, setCurrentQuestion] = useState<any>(null);
   const [shuffledQuestion, setShuffledQuestion] = useState<ShuffledQuestion | null>(null);
   const [loading, setLoading] = useState(true);
+  const isInitialLoadRef = useRef(true);
 
   useEffect(() => {
     loadGameData();
   }, [partyId]);
+
+  const handleGameProgression = async () => {
+    const currentGameState = gameStateRef.current;
+    console.log('🚨 BUTTON PRESSED: handleGameProgression called with gameState:', currentGameState);
+    console.log('🚨 BUTTON PRESSED: Current phase:', currentGameState.gamePhase);
+    console.log('🚨 BUTTON PRESSED: This should only happen when user presses the arrow button');
+    console.log('🚨 BUTTON PRESSED: isInitialLoad:', isInitialLoadRef.current);
+    
+    // Don't progress if this is during initial load
+    if (isInitialLoadRef.current) {
+      console.log('🚨 BUTTON PRESSED: Ignoring progression during initial load');
+      return;
+    }
+    
+    // Don't progress if we don't have proper game state set up
+    if (rounds.length === 0 || !currentGameState.currentRoundData) {
+      console.log('HostPartyScreen: Game not properly initialized, ignoring progression');
+      return;
+    }
+    
+    switch (currentGameState.gamePhase) {
+      case GamePhase.ROUND_INTRO:
+        console.log('🚨 BUTTON PRESSED: ✅ CASE ROUND_INTRO - Moving to QUESTION_DISPLAY');
+        await handleRoundIntroToQuestion();
+        break;
+        
+      case GamePhase.QUESTION_DISPLAY:
+        console.log('🚨 BUTTON PRESSED: ✅ CASE QUESTION_DISPLAY - Moving to QUESTION_RESULTS');
+        await handleQuestionToResults();
+        break;
+        
+      case GamePhase.QUESTION_RESULTS:
+        console.log('🚨 BUTTON PRESSED: ✅ CASE QUESTION_RESULTS - Moving to next phase');
+        await handleResultsToNext();
+        break;
+        
+      case GamePhase.ROUND_COMPLETE:
+        console.log('🚨 BUTTON PRESSED: ✅ CASE ROUND_COMPLETE - Moving to next round or game complete');
+        await handleRoundCompleteToNext();
+        break;
+        
+      case GamePhase.GAME_COMPLETE:
+        console.log('🚨 BUTTON PRESSED: ✅ CASE GAME_COMPLETE - Moving to GAME_THANKS');
+        setGameState(prev => ({ ...prev, gamePhase: GamePhase.GAME_THANKS }));
+        break;
+        
+      case GamePhase.GAME_THANKS:
+        console.log('🚨 BUTTON PRESSED: ✅ CASE GAME_THANKS - Navigating back to party list');
+        navigation.goBack();
+        break;
+        
+      default:
+        console.log('🚨 BUTTON PRESSED: ❌ UNKNOWN CASE - Unknown game phase:', gameState.gamePhase);
+        break;
+    }
+  };
+
+  // Phase transition functions
+  const handleRoundIntroToQuestion = async () => {
+    console.log('🚨 ROUND INTRO TO QUESTION: Called!');
+    console.log('🚨 ROUND INTRO TO QUESTION: Current phase before change:', gameState.gamePhase);
+    
+    // Load and display the first question of the current round
+    const currentRoundData = gameState.currentRoundData;
+    if (!currentRoundData) {
+      console.log('🚨 ROUND INTRO TO QUESTION: No current round data!');
+      return;
+    }
+    
+    const questionData = await loadCurrentQuestion(currentRoundData.id, gameState.currentQuestion);
+    if (questionData) {
+      console.log('🚨 ROUND INTRO TO QUESTION: Got question data, broadcasting and setting phase');
+      await broadcastQuestionAndSetDisplay(questionData, currentRoundData.name);
+      
+      setGameState(prev => {
+        console.log('🚨 ROUND INTRO TO QUESTION: Previous gameState:', prev);
+        const newState = { ...prev, gamePhase: GamePhase.QUESTION_DISPLAY };
+        console.log('🚨 ROUND INTRO TO QUESTION: New gameState:', newState);
+        return newState;
+      });
+      
+      console.log('🚨 ROUND INTRO TO QUESTION: State update called');
+    } else {
+      console.log('🚨 ROUND INTRO TO QUESTION: No question data found!');
+    }
+  };
+
+  const handleQuestionToResults = async () => {
+    console.log('🚨 QUESTION TO RESULTS: Called! Setting phase to QUESTION_RESULTS');
+    console.log('🚨 QUESTION TO RESULTS: Current phase before change:', gameState.gamePhase);
+    
+    // Show results for current question
+    setGameState(prev => {
+      console.log('🚨 QUESTION TO RESULTS: Previous gameState:', prev);
+      const newState = { ...prev, gamePhase: GamePhase.QUESTION_RESULTS };
+      console.log('🚨 QUESTION TO RESULTS: New gameState:', newState);
+      return newState;
+    });
+    
+    console.log('🚨 QUESTION TO RESULTS: State updated, now broadcasting results');
+    
+    // Broadcast results to players
+    if (currentQuestion && shuffledQuestion) {
+      await PartyService.broadcastQuestionResults(partyId, currentQuestion, shuffledQuestion);
+      console.log('🚨 QUESTION TO RESULTS: Results broadcasted successfully');
+    } else {
+      console.log('🚨 QUESTION TO RESULTS: No current question or shuffled question to broadcast');
+    }
+  };
+
+  const handleResultsToNext = async () => {
+    const currentGameState = gameStateRef.current;
+    console.log('🚨 RESULTS TO NEXT: Current gameState:', currentGameState);
+    console.log('🚨 RESULTS TO NEXT: Current question:', currentGameState.currentQuestion, 'Total questions:', currentGameState.totalQuestions);
+    
+    const isLastQuestion = currentGameState.currentQuestion >= currentGameState.totalQuestions;
+    const isLastRound = currentGameState.currentRound >= rounds.length;
+    
+    console.log('🚨 RESULTS TO NEXT: isLastQuestion:', isLastQuestion, 'isLastRound:', isLastRound);
+    
+    if (isLastQuestion && isLastRound) {
+      // Game complete
+      console.log('🚨 RESULTS TO NEXT: Game complete!');
+      setGameState(prev => ({ ...prev, gamePhase: GamePhase.GAME_COMPLETE }));
+    } else if (isLastQuestion) {
+      // Round complete
+      console.log('🚨 RESULTS TO NEXT: Round complete!');
+      setGameState(prev => ({ ...prev, gamePhase: GamePhase.ROUND_COMPLETE }));
+    } else {
+      // Next question
+      const nextQuestionNumber = currentGameState.currentQuestion + 1;
+      console.log('🚨 RESULTS TO NEXT: Loading next question:', nextQuestionNumber);
+      
+      const questionData = await loadCurrentQuestion(currentGameState.currentRoundData!.id, nextQuestionNumber);
+      
+      if (questionData) {
+        console.log('🚨 RESULTS TO NEXT: Got question data for question:', nextQuestionNumber);
+        await broadcastQuestionAndSetDisplay(questionData, currentGameState.currentRoundData!.name);
+        
+        console.log('🚨 RESULTS TO NEXT: Updating game state to question:', nextQuestionNumber);
+        setGameState(prev => ({ 
+          ...prev, 
+          currentQuestion: nextQuestionNumber,
+          gamePhase: GamePhase.QUESTION_DISPLAY 
+        }));
+      } else {
+        console.error('🚨 RESULTS TO NEXT: No question data found for question:', nextQuestionNumber);
+      }
+    }
+  };
+
+  const handleRoundCompleteToNext = async () => {
+    const currentGameState = gameStateRef.current;
+    const nextRoundNumber = currentGameState.currentRound + 1;
+    const nextRound = rounds[nextRoundNumber - 1];
+    
+    if (nextRound) {
+      // Start next round
+      setGameState({
+        currentRound: nextRoundNumber,
+        currentQuestion: 1,
+        totalQuestions: nextRound.question_count,
+        gamePhase: GamePhase.ROUND_INTRO,
+        currentRoundData: {
+          name: nextRound.name,
+          id: nextRound.id,
+          questionCount: nextRound.question_count,
+        },
+      });
+    } else {
+      // No more rounds, game complete
+      setGameState(prev => ({ ...prev, gamePhase: GamePhase.GAME_COMPLETE }));
+    }
+  };
+
+  // Set up navigation header right button for game progression
+  useEffect(() => {
+    const shouldShowButton = party && (party.status === 'active') && gameState.currentRoundData;
+    
+    console.log('HostPartyScreen: Setting up right button. shouldShow:', shouldShowButton);
+    console.log('HostPartyScreen: onGameProgression prop exists:', !!onGameProgression);
+    console.log('HostPartyScreen: party status:', party?.status);
+    console.log('HostPartyScreen: current phase:', gameState.gamePhase);
+    
+    if (shouldShowButton && onGameProgression) {
+      console.log('HostPartyScreen: Calling onGameProgression with handler');
+      onGameProgression(handleGameProgression);
+    } else if (onGameProgression) {
+      console.log('HostPartyScreen: Clearing right button');
+      onGameProgression(null);
+    } else {
+      console.log('HostPartyScreen: onGameProgression prop not available');
+    }
+  }, [party?.status, gameState.currentRoundData, onGameProgression]);
+
+  // Clean up button on unmount
+  useEffect(() => {
+    return () => {
+      if (onGameProgression) {
+        console.log('HostPartyScreen: Cleanup - clearing right button on unmount');
+        onGameProgression(null);
+      }
+    };
+  }, []);
 
   // Refresh teams and party status when screen comes into focus (without disrupting question progression)
   useFocusEffect(
@@ -79,75 +305,42 @@ export default function HostPartyScreen({ navigation, route }: { navigation: any
       setRounds(roundsData);
       setTeams(teamsData);
 
-      // Load current/next question if game is active
+      // Initialize game state if party is active
+      console.log('HostPartyScreen: Checking party status:', currentParty?.status, 'rounds:', roundsData.length);
       if (currentParty?.status === 'active' && roundsData.length > 0) {
         try {
-          // Check if there are teams - if not, this is a freshly started game
-          if (teamsData.length === 0) {
-            console.log('HostPartyScreen: Freshly started game with no teams yet, loading first question');
-            // Start with the first question of the first round
-            const firstQuestion = await loadCurrentQuestion(roundsData[0].id, 1);
-            
-            if (firstQuestion) {
-              await broadcastQuestionAndSetDisplay(firstQuestion, roundsData[0].name);
-              setGameState({
-                currentRound: 1,
-                currentQuestion: 1,
-                totalQuestions: roundsData[0].question_count,
-                isShowingResults: false,
-              });
-            }
-          } else {
-            // Find the next unanswered question for resuming
-            const nextQuestion = await PartyService.findNextUnansweredQuestion(partyId);
-            
-            if (nextQuestion) {
-              console.log('HostPartyScreen: Resuming game with next unanswered question:', nextQuestion);
-              
-              // Load the specific question
-              const questionData = await loadCurrentQuestion(nextQuestion.round.id, nextQuestion.questionOrder);
-              
-              // Update game state to current position
-              await PartyService.updateGameState(partyId, nextQuestion.round.id, nextQuestion.questionOrder);
-              
-              // Set the correct game state
-              const currentRoundIndex = roundsData.findIndex(r => r.id === nextQuestion.round.id);
-              setGameState({
-                currentRound: currentRoundIndex + 1,
-                currentQuestion: nextQuestion.questionOrder,
-                totalQuestions: nextQuestion.round.question_count,
-                isShowingResults: false,
-              });
-              
-              // Broadcast the current question to players who are joining/rejoining
-              if (questionData) {
-                console.log('HostPartyScreen: Broadcasting resume question:', questionData);
-                await broadcastQuestionAndSetDisplay(questionData, nextQuestion.round.name);
-              }
-            } else {
-              // All questions answered - game should be completed
-              console.log('HostPartyScreen: All questions answered, game should be completed');
-              await PartyService.updatePartyStatus(partyId, 'completed');
-              setGameState({
-                currentRound: roundsData.length,
-                currentQuestion: roundsData[roundsData.length - 1]?.question_count || 1,
-                totalQuestions: roundsData[roundsData.length - 1]?.question_count || 1,
-                isShowingResults: true,
-              });
-            }
-          }
+          console.log('HostPartyScreen: Party is active, initializing game state');
+          
+          // Always start fresh game with round intro
+          const firstRound = roundsData[0];
+          console.log('HostPartyScreen: Starting fresh game with round intro');
+          
+          setGameState({
+            currentRound: 1,
+            currentQuestion: 1,
+            totalQuestions: firstRound.question_count,
+            gamePhase: GamePhase.ROUND_INTRO,
+            currentRoundData: {
+              name: firstRound.name,
+              id: firstRound.id,
+              questionCount: firstRound.question_count,
+            },
+          });
+          
+          // Update game state in database
+          await PartyService.updateGameState(partyId, firstRound.id, 1);
+          
+          console.log('HostPartyScreen: Game initialized with round intro phase');
+          
+          // Enable button progression after game state is set
+          console.log('HostPartyScreen: Setting isInitialLoad to false');
+          isInitialLoadRef.current = false;
         } catch (error) {
-          console.error('HostPartyScreen: Error resuming active game:', error);
-          // Fallback to first question if resume fails
-          const firstQuestion = await loadCurrentQuestion(roundsData[0].id, 1);
-          if (firstQuestion) {
-            await broadcastQuestionAndSetDisplay(firstQuestion, roundsData[0].name);
-          }
-          setGameState(prev => ({
-            ...prev,
-            totalQuestions: roundsData[0].question_count,
-          }));
+          console.error('HostPartyScreen: Error initializing game:', error);
         }
+      } else {
+        console.log('HostPartyScreen: Party not active or no rounds, setting isInitialLoad to false anyway');
+        isInitialLoadRef.current = false;
       }
     } catch (error) {
       console.error('Error loading game data:', error);
@@ -177,20 +370,32 @@ export default function HostPartyScreen({ navigation, route }: { navigation: any
       roundName: roundName
     });
     
-    // Broadcast question to players and get the shuffled version used
-    const shuffled = await PartyService.broadcastQuestionToPlayers(partyId, {
-      ...questionData,
-      round_name: roundName
+    // Always create a shuffled question for the host display
+    const shuffled = shuffleQuestionAnswers({
+      question: questionData.questions.question,
+      a: questionData.questions.a,
+      b: questionData.questions.b,
+      c: questionData.questions.c,
+      d: questionData.questions.d,
     });
     
-    console.log('HostPartyScreen: Received shuffled question back:', shuffled);
+    console.log('HostPartyScreen: Created shuffled question for host:', shuffled.originalQuestion);
+    setShuffledQuestion(shuffled);
     
-    // Use the same shuffle for host display
-    if (shuffled) {
-      console.log('HostPartyScreen: Setting new shuffled question:', shuffled.originalQuestion);
-      setShuffledQuestion(shuffled);
-    } else {
-      console.error('HostPartyScreen: No shuffled question returned from broadcastQuestionToPlayers!');
+    // Try to broadcast to players (but don't fail if broadcast fails)
+    try {
+      const broadcastResult = await PartyService.broadcastQuestionToPlayers(partyId, {
+        ...questionData,
+        round_name: roundName
+      }, shuffled);
+      
+      if (broadcastResult) {
+        console.log('HostPartyScreen: Successfully broadcasted to players');
+      } else {
+        console.log('HostPartyScreen: Broadcast failed, but host can continue');
+      }
+    } catch (error) {
+      console.error('HostPartyScreen: Broadcast error (continuing anyway):', error);
     }
     
     return shuffled;
@@ -250,93 +455,61 @@ export default function HostPartyScreen({ navigation, route }: { navigation: any
     }
   };
 
-  const handleShowResults = async () => {
-    setGameState(prev => ({ ...prev, isShowingResults: true }));
-    
-    // Broadcast question results to players with the same shuffled answers they saw
-    if (currentQuestion && shuffledQuestion) {
-      await PartyService.broadcastQuestionResults(partyId, currentQuestion, shuffledQuestion);
-    }
-  };
-
-  const handleEndGame = async () => {
-    try {
-      await PartyService.updatePartyStatus(partyId, 'completed');
-      await PartyService.broadcastGameEnded(partyId);
-      Alert.alert('Game Complete!', 'The trivia party has ended. Final results are now available.', [
-        {
-          text: 'View Results',
-          onPress: () => navigation.goBack(),
-        },
-      ]);
-    } catch (error) {
-      console.error('Error ending game:', error);
-      Alert.alert('Error', 'Failed to end the game');
-    }
-  };
 
   const getCurrentRound = () => rounds[gameState.currentRound - 1];
 
-
-
-  if (loading) {
-    return (
-      <View style={styles.centerContainer}>
-        <Text variant="bodyLarge">Loading game controls...</Text>
-      </View>
-    );
-  }
-
-  if (!party) {
-    return (
-      <View style={styles.centerContainer}>
-        <Text variant="bodyLarge">Party not found</Text>
-      </View>
-    );
-  }
-
-  const currentRound = getCurrentRound();
-
-  return (
+  // State-based render functions
+  const renderRoundIntro = () => (
     <ScrollView style={[styles.container, { paddingTop: insets.top }]} contentContainerStyle={styles.content}>
-      {/* Game Status Card */}
-      <Card style={styles.statusCard}>
-        <Card.Content>
-          <Text variant="headlineSmall" style={styles.title}>
-            {party.name} - Host Controls
+      <View style={styles.compactHeader}>
+        <Text variant="headlineSmall" style={styles.partyTitle}>
+          {party?.name}
+        </Text>
+        <View style={styles.compactStatusRow}>
+          <Text variant="bodyMedium" style={styles.gameCodeText}>
+            Code: <Text style={styles.gameCodeValue}>{party?.join_code}</Text>
           </Text>
-          
-          <View style={styles.gameCodeContainer}>
-            <Text variant="bodyMedium" style={styles.gameCodeLabel}>
-              Game Code:
-            </Text>
-            <Text variant="titleLarge" style={styles.gameCode}>
-              {party.join_code}
-            </Text>
-          </View>
-          
-          <View style={styles.statusRow}>
-            <Chip mode="flat" style={styles.statusChip}>
-              Round {gameState.currentRound} of {rounds.length}
-            </Chip>
-            <Chip mode="outlined" style={styles.statusChip}>
-              Question {gameState.currentQuestion} of {gameState.totalQuestions}
-            </Chip>
-          </View>
+        </View>
+      </View>
 
-          {currentRound && (
-            <Text variant="bodyMedium" style={styles.roundName}>
-              Current Round: {currentRound.name}
-            </Text>
-          )}
+      <Card style={styles.roundIntroCard}>
+        <Card.Content style={styles.roundIntroContent}>
+          <Text variant="displayMedium" style={styles.roundIntroTitle}>
+            Round {gameState.currentRound}
+          </Text>
+          <Text variant="headlineMedium" style={styles.roundIntroName}>
+            {gameState.currentRoundData?.name}
+          </Text>
+          <Text variant="bodyLarge" style={styles.roundIntroQuestions}>
+            {gameState.currentRoundData?.questionCount} Questions
+          </Text>
+          <Text variant="bodyMedium" style={styles.roundIntroInstructions}>
+            Tap the arrow to start this round
+          </Text>
         </Card.Content>
       </Card>
+    </ScrollView>
+  );
 
-      {/* Live Leaderboard */}
-      <LiveLeaderboard partyId={partyId} maxTeams={5} compact={false} />
+  const renderQuestionDisplay = () => (
+    <ScrollView style={[styles.container, { paddingTop: insets.top }]} contentContainerStyle={styles.content}>
+      <View style={styles.compactHeader}>
+        <Text variant="headlineSmall" style={styles.partyTitle}>
+          {party?.name}
+        </Text>
+        <View style={styles.compactStatusRow}>
+          <Text variant="bodyMedium" style={styles.gameCodeText}>
+            Code: <Text style={styles.gameCodeValue}>{party?.join_code}</Text>
+          </Text>
+          <Text variant="bodyMedium" style={styles.statusText}>
+            Round {gameState.currentRound}/{rounds.length} • Question {gameState.currentQuestion}/{gameState.totalQuestions}
+          </Text>
+          <Text variant="bodySmall" style={styles.compactRoundName}>
+            {gameState.currentRoundData?.name}
+          </Text>
+        </View>
+      </View>
 
-
-      {/* Current Question Display */}
       {shuffledQuestion && (
         <Card style={styles.questionCard}>
           <Card.Content>
@@ -360,87 +533,194 @@ export default function HostPartyScreen({ navigation, route }: { navigation: any
             </Text>
             
             {shuffledQuestion.shuffledAnswers.map((answer) => (
+              <View key={answer.letter} style={styles.answerOption}>
+                <Text variant="bodyMedium" style={styles.optionLabel}>
+                  {answer.letter}.
+                </Text>
+                <Text variant="bodyMedium" style={styles.answerText}>
+                  {answer.text}
+                </Text>
+              </View>
+            ))}
+
+            <View style={styles.hiddenAnswerNotice}>
+              <Text variant="bodyMedium" style={styles.hiddenAnswerText}>
+                Players are answering... Tap arrow to show results
+              </Text>
+            </View>
+          </Card.Content>
+        </Card>
+      )}
+    </ScrollView>
+  );
+
+  const renderQuestionResults = () => (
+    <ScrollView style={[styles.container, { paddingTop: insets.top }]} contentContainerStyle={styles.content}>
+      <View style={styles.compactHeader}>
+        <Text variant="headlineSmall" style={styles.partyTitle}>
+          {party?.name}
+        </Text>
+        <View style={styles.compactStatusRow}>
+          <Text variant="bodyMedium" style={styles.gameCodeText}>
+            Code: <Text style={styles.gameCodeValue}>{party?.join_code}</Text>
+          </Text>
+          <Text variant="bodyMedium" style={styles.statusText}>
+            Round {gameState.currentRound}/{rounds.length} • Question {gameState.currentQuestion}/{gameState.totalQuestions}
+          </Text>
+          <Text variant="bodySmall" style={styles.compactRoundName}>
+            {gameState.currentRoundData?.name}
+          </Text>
+        </View>
+      </View>
+
+      {shuffledQuestion && (
+        <Card style={styles.questionCard}>
+          <Card.Content>
+            <View style={styles.questionHeader}>
+              <Text variant="labelLarge" style={styles.category}>
+                {currentQuestion?.questions?.category}
+              </Text>
+              <Text variant="labelMedium" style={styles.difficulty}>
+                {currentQuestion?.questions?.difficulty}
+              </Text>
+            </View>
+
+            <Text variant="headlineSmall" style={styles.question}>
+              {shuffledQuestion.originalQuestion}
+            </Text>
+
+            <Divider style={styles.divider} />
+
+            <Text variant="titleMedium" style={styles.answersTitle}>
+              Correct Answer:
+            </Text>
+            
+            {shuffledQuestion.shuffledAnswers.map((answer) => (
               <View key={answer.letter} style={[
                 styles.answerOption,
-                gameState.isShowingResults && answer.isCorrect && styles.correctAnswerOption
+                answer.isCorrect && styles.correctAnswerOption
               ]}>
                 <Text variant="bodyMedium" style={styles.optionLabel}>
                   {answer.letter}.
                 </Text>
                 <Text variant="bodyMedium" style={[
                   styles.answerText,
-                  gameState.isShowingResults && answer.isCorrect && styles.correctAnswerText
+                  answer.isCorrect && styles.correctAnswerText
                 ]}>
                   {answer.text}
                 </Text>
-                {gameState.isShowingResults && answer.isCorrect && (
+                {answer.isCorrect && (
                   <Text variant="bodyMedium" style={styles.correctIndicator}>
                     ✓ CORRECT
                   </Text>
                 )}
               </View>
             ))}
-
-            {!gameState.isShowingResults && (
-              <View style={styles.hiddenAnswerNotice}>
-                <Text variant="bodyMedium" style={styles.hiddenAnswerText}>
-                  Correct answer will be revealed when you show results
-                </Text>
-              </View>
-            )}
           </Card.Content>
         </Card>
       )}
 
-      {/* Host Controls */}
-      <Card style={styles.controlsCard}>
-        <Card.Content>
-          <Text variant="titleMedium" style={styles.sectionTitle}>
-            Game Controls
-          </Text>
+      <LiveLeaderboard partyId={partyId} maxTeams={5} compact={false} />
+    </ScrollView>
+  );
 
-          {!gameState.isShowingResults ? (
-            <Button
-              mode="outlined"
-              onPress={handleShowResults}
-              style={styles.controlButton}
-              icon="chart-bar"
-            >
-              Show Question Results
-            </Button>
-          ) : (
-            <View style={styles.resultControls}>
-              <Text variant="bodyMedium" style={styles.resultText}>
-                Question results are now visible to all players
-              </Text>
-              
-              {gameState.currentQuestion < gameState.totalQuestions || gameState.currentRound < rounds.length ? (
-                <Button
-                  mode="contained"
-                  onPress={handleNextQuestion}
-                  style={styles.controlButton}
-                  icon="arrow-right"
-                >
-                  {gameState.currentQuestion < gameState.totalQuestions 
-                    ? 'Next Question' 
-                    : 'Next Round'}
-                </Button>
-              ) : (
-                <Button
-                  mode="contained"
-                  onPress={handleEndGame}
-                  style={[styles.controlButton, styles.endGameButton]}
-                  icon="trophy"
-                >
-                  End Game
-                </Button>
-              )}
-            </View>
-          )}
+  const renderRoundComplete = () => (
+    <ScrollView style={[styles.container, { paddingTop: insets.top }]} contentContainerStyle={styles.content}>
+      <View style={styles.compactHeader}>
+        <Text variant="headlineSmall" style={styles.partyTitle}>
+          {party?.name}
+        </Text>
+      </View>
+
+      <Card style={styles.roundCompleteCard}>
+        <Card.Content style={styles.roundCompleteContent}>
+          <Text variant="displaySmall" style={styles.roundCompleteTitle}>
+            Round {gameState.currentRound} Complete!
+          </Text>
+          <Text variant="headlineSmall" style={styles.roundCompleteName}>
+            {gameState.currentRoundData?.name}
+          </Text>
+        </Card.Content>
+      </Card>
+
+      <LiveLeaderboard partyId={partyId} maxTeams={10} compact={false} />
+    </ScrollView>
+  );
+
+  const renderGameComplete = () => (
+    <ScrollView style={[styles.container, { paddingTop: insets.top }]} contentContainerStyle={styles.content}>
+      <View style={styles.compactHeader}>
+        <Text variant="headlineSmall" style={styles.partyTitle}>
+          {party?.name}
+        </Text>
+      </View>
+
+      <Card style={styles.gameCompleteCard}>
+        <Card.Content style={styles.gameCompleteContent}>
+          <Text variant="displaySmall" style={styles.gameCompleteTitle}>
+            🎉 Game Complete! 🎉
+          </Text>
+          <Text variant="headlineSmall" style={styles.gameCompleteSubtitle}>
+            Final Results
+          </Text>
+        </Card.Content>
+      </Card>
+
+      <LiveLeaderboard partyId={partyId} maxTeams={10} compact={false} />
+    </ScrollView>
+  );
+
+  const renderGameThanks = () => (
+    <ScrollView style={[styles.container, { paddingTop: insets.top }]} contentContainerStyle={styles.content}>
+      <Card style={styles.thanksCard}>
+        <Card.Content style={styles.thanksContent}>
+          <Text variant="displayMedium" style={styles.thanksTitle}>
+            Thanks for Playing! 🎊
+          </Text>
+          <Text variant="bodyLarge" style={styles.thanksMessage}>
+            Hope you had a great time at {party?.name}!
+          </Text>
+          <Text variant="bodyMedium" style={styles.thanksInstructions}>
+            Tap the arrow to return to your parties
+          </Text>
         </Card.Content>
       </Card>
     </ScrollView>
   );
+
+  if (loading) {
+    return (
+      <View style={styles.centerContainer}>
+        <Text variant="bodyLarge">Loading game controls...</Text>
+      </View>
+    );
+  }
+
+  if (!party) {
+    return (
+      <View style={styles.centerContainer}>
+        <Text variant="bodyLarge">Party not found</Text>
+      </View>
+    );
+  }
+
+  // Render based on current game phase
+  switch (gameState.gamePhase) {
+    case GamePhase.ROUND_INTRO:
+      return renderRoundIntro();
+    case GamePhase.QUESTION_DISPLAY:
+      return renderQuestionDisplay();
+    case GamePhase.QUESTION_RESULTS:
+      return renderQuestionResults();
+    case GamePhase.ROUND_COMPLETE:
+      return renderRoundComplete();
+    case GamePhase.GAME_COMPLETE:
+      return renderGameComplete();
+    case GamePhase.GAME_THANKS:
+      return renderGameThanks();
+    default:
+      return renderRoundIntro();
+  }
 }
 
 const styles = StyleSheet.create({
@@ -457,45 +737,40 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     padding: 16,
   },
-  statusCard: {
+  compactHeader: {
+    backgroundColor: '#ffffff',
+    padding: 12,
     marginBottom: 16,
+    borderRadius: 8,
     elevation: 2,
   },
-  title: {
+  partyTitle: {
     color: '#1f2937',
-    marginBottom: 16,
+    textAlign: 'center',
+    marginBottom: 8,
+  },
+  compactStatusRow: {
+    alignItems: 'center',
+    gap: 4,
+  },
+  gameCodeText: {
+    color: '#6b7280',
     textAlign: 'center',
   },
-  gameCodeContainer: {
-    backgroundColor: '#f0f9ff',
-    padding: 12,
-    borderRadius: 8,
-    alignItems: 'center',
-    marginBottom: 16,
-    borderWidth: 2,
-    borderColor: '#3b82f6',
-  },
-  gameCodeLabel: {
-    color: '#6b7280',
-    marginBottom: 4,
-  },
-  gameCode: {
+  gameCodeValue: {
     color: '#1e40af',
     fontWeight: 'bold',
     fontFamily: 'monospace',
-    letterSpacing: 2,
+    letterSpacing: 1,
   },
-  statusRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-around',
-    marginBottom: 12,
-  },
-  statusChip: {
-    backgroundColor: '#6366f1',
-  },
-  roundName: {
+  statusText: {
     color: '#6b7280',
     textAlign: 'center',
+  },
+  compactRoundName: {
+    color: '#6366f1',
+    textAlign: 'center',
+    fontStyle: 'italic',
   },
   analyticsCard: {
     marginBottom: 16,
@@ -514,10 +789,6 @@ const styles = StyleSheet.create({
   },
   actionButton: {
     flex: 1,
-  },
-  sectionTitle: {
-    color: '#1f2937',
-    marginBottom: 12,
   },
   questionCard: {
     marginBottom: 16,
@@ -595,20 +866,98 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     fontStyle: 'italic',
   },
-  controlsCard: {
+  // Round intro styles
+  roundIntroCard: {
+    marginBottom: 16,
     elevation: 2,
+    backgroundColor: '#f0f9ff',
   },
-  controlButton: {
-    marginTop: 12,
+  roundIntroContent: {
+    alignItems: 'center',
+    paddingVertical: 32,
   },
-  resultControls: {
-    gap: 12,
+  roundIntroTitle: {
+    color: '#1e40af',
+    fontWeight: 'bold',
+    marginBottom: 8,
   },
-  resultText: {
-    color: '#6b7280',
+  roundIntroName: {
+    color: '#1f2937',
+    marginBottom: 16,
     textAlign: 'center',
   },
-  endGameButton: {
-    backgroundColor: '#059669',
+  roundIntroQuestions: {
+    color: '#6b7280',
+    marginBottom: 16,
+  },
+  roundIntroInstructions: {
+    color: '#9ca3af',
+    textAlign: 'center',
+    fontStyle: 'italic',
+  },
+  // Round complete styles
+  roundCompleteCard: {
+    marginBottom: 16,
+    elevation: 2,
+    backgroundColor: '#ecfdf5',
+  },
+  roundCompleteContent: {
+    alignItems: 'center',
+    paddingVertical: 24,
+  },
+  roundCompleteTitle: {
+    color: '#059669',
+    fontWeight: 'bold',
+    marginBottom: 8,
+    textAlign: 'center',
+  },
+  roundCompleteName: {
+    color: '#1f2937',
+    textAlign: 'center',
+  },
+  // Game complete styles
+  gameCompleteCard: {
+    marginBottom: 16,
+    elevation: 2,
+    backgroundColor: '#fef3c7',
+  },
+  gameCompleteContent: {
+    alignItems: 'center',
+    paddingVertical: 24,
+  },
+  gameCompleteTitle: {
+    color: '#d97706',
+    fontWeight: 'bold',
+    marginBottom: 8,
+    textAlign: 'center',
+  },
+  gameCompleteSubtitle: {
+    color: '#1f2937',
+    textAlign: 'center',
+  },
+  // Thanks styles
+  thanksCard: {
+    elevation: 2,
+    backgroundColor: '#fdf2f8',
+  },
+  thanksContent: {
+    alignItems: 'center',
+    paddingVertical: 48,
+  },
+  thanksTitle: {
+    color: '#be185d',
+    fontWeight: 'bold',
+    marginBottom: 16,
+    textAlign: 'center',
+  },
+  thanksMessage: {
+    color: '#1f2937',
+    marginBottom: 16,
+    textAlign: 'center',
+  },
+  thanksInstructions: {
+    color: '#9ca3af',
+    textAlign: 'center',
+    fontStyle: 'italic',
   },
 });
