@@ -24,9 +24,17 @@ interface CurrentQuestion {
   question_number: number;
 }
 
-export default function PlayerPartyScreen({ route }: any) {
+export default function PlayerPartyScreen({ navigation, route }: any) {
   const insets = useSafeAreaInsets();
   const { partyId, teamId } = route.params || {};
+
+  // Handle missing params - redirect to home if no party/team data
+  useEffect(() => {
+    if (!partyId || !teamId) {
+      console.warn('PlayerPartyScreen: Missing partyId or teamId, redirecting to home');
+      navigation.navigate('PlayerHome');
+    }
+  }, [partyId, teamId, navigation]);
 
   const [party, setParty] = useState<Party | null>(null);
   const [team, setTeam] = useState<Team | null>(null);
@@ -262,6 +270,23 @@ export default function PlayerPartyScreen({ route }: any) {
     }
   };
 
+  const handleLeaveGame = () => {
+    Alert.alert(
+      'Leave Game',
+      'Are you sure you want to leave this game?',
+      [
+        { text: 'Cancel', style: 'cancel' },
+        { 
+          text: 'Leave', 
+          style: 'destructive',
+          onPress: () => {
+            // Navigate back to home and clear the navigation stack
+            navigation.navigate('PlayerHome');
+          }
+        }
+      ]
+    );
+  };
 
   const renderWaitingScreen = () => (
     <View style={[styles.centerContainer, { paddingTop: insets.top }]}>
@@ -290,6 +315,16 @@ export default function PlayerPartyScreen({ route }: any) {
             disabled={subscriptionStatus === 'refreshing'}
           >
             Refresh Connection
+          </Button>
+          
+          <Button
+            mode="text"
+            onPress={handleLeaveGame}
+            style={styles.leaveButton}
+            icon="exit-to-app"
+            textColor="#dc2626"
+          >
+            Leave Game
           </Button>
         </Card.Content>
       </Card>
@@ -524,6 +559,9 @@ const styles = StyleSheet.create({
   refreshButton: {
     marginTop: 16,
     borderColor: '#6366f1',
+  },
+  leaveButton: {
+    marginTop: 8,
   },
   refreshButtonSmall: {
     marginTop: 8,

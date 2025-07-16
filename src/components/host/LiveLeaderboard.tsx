@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { View, StyleSheet, Animated } from 'react-native';
-import { Text, Card } from 'react-native-paper';
+import { Text, Card, Button } from 'react-native-paper';
 import { PartyService } from '../../services/partyService';
 import { supabase } from '../../lib/supabase';
 
