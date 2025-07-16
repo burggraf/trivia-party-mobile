@@ -31,7 +31,9 @@ export default function LiveLeaderboard({ partyId, maxTeams = 5, compact = false
 
   const loadTeams = async () => {
     try {
+      console.log('LiveLeaderboard: Loading teams for party:', partyId);
       const teamsData = await PartyService.getPartyTeams(partyId);
+      console.log('LiveLeaderboard: Loaded teams:', teamsData.map(t => `${t.name}: ${t.score}`));
       setTeams(teamsData.slice(0, maxTeams));
     } catch (error) {
       console.error('Error loading teams:', error);
@@ -159,9 +161,19 @@ export default function LiveLeaderboard({ partyId, maxTeams = 5, compact = false
   return (
     <Card style={styles.container}>
       <Card.Content>
-        <Text variant={compact ? "titleMedium" : "titleLarge"} style={styles.title}>
-          🏆 Live Leaderboard
-        </Text>
+        <View style={styles.headerRow}>
+          <Text variant={compact ? "titleMedium" : "titleLarge"} style={styles.title}>
+            🏆 Live Leaderboard
+          </Text>
+          <Button
+            mode="text"
+            onPress={loadTeams}
+            style={styles.refreshButton}
+            labelStyle={styles.refreshButtonText}
+          >
+            🔄
+          </Button>
+        </View>
         
         <View style={styles.teamsList}>
           {teams.map((team, index) => {
@@ -236,10 +248,24 @@ const styles = StyleSheet.create({
   container: {
     elevation: 2,
   },
+  headerRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    marginBottom: 12,
+  },
   title: {
     color: '#1f2937',
-    marginBottom: 12,
+    flex: 1,
     textAlign: 'center',
+  },
+  refreshButton: {
+    minWidth: 30,
+    margin: 0,
+  },
+  refreshButtonText: {
+    fontSize: 16,
+    margin: 0,
   },
   noTeams: {
     color: '#6b7280',
