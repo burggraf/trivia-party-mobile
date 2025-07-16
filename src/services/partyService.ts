@@ -637,8 +637,21 @@ export class PartyService {
       const channelName = `teams-${partyId}`;
       const channel = supabase.channel(channelName);
       
-      // Subscribe to the channel if not already subscribed
-      await channel.subscribe();
+      // Subscribe to the channel and wait for subscription to complete
+      await new Promise((resolve, reject) => {
+        const timeout = setTimeout(() => {
+          console.log('PartyService: Team score channel subscription timeout!');
+          reject(new Error('Channel subscription timeout'));
+        }, 5000);
+        
+        channel.subscribe((status) => {
+          console.log('PartyService: Team score broadcast channel status:', status);
+          if (status === 'SUBSCRIBED') {
+            clearTimeout(timeout);
+            resolve(true);
+          }
+        });
+      });
       
       const result = await channel.send({
         type: 'broadcast',
@@ -646,6 +659,9 @@ export class PartyService {
         payload: team
       });
       console.log('PartyService: Team score broadcast result:', result);
+      
+      // Clean up channel
+      supabase.removeChannel(channel);
     } catch (error) {
       console.error('PartyService: Error broadcasting team score update:', error);
     }
@@ -657,8 +673,23 @@ export class PartyService {
       const channelName = `teams-${partyId}`;
       const channel = supabase.channel(channelName);
       
-      // Subscribe to the channel if not already subscribed
-      await channel.subscribe();
+      // Subscribe to the channel and wait for subscription to complete
+      console.log('PartyService: Subscribing to channel for team creation broadcast...');
+      await new Promise((resolve, reject) => {
+        const timeout = setTimeout(() => {
+          console.log('PartyService: Team creation channel subscription timeout!');
+          reject(new Error('Channel subscription timeout'));
+        }, 5000);
+        
+        channel.subscribe((status) => {
+          console.log('PartyService: Team creation broadcast channel status:', status);
+          if (status === 'SUBSCRIBED') {
+            clearTimeout(timeout);
+            console.log('PartyService: Team creation channel successfully subscribed');
+            resolve(true);
+          }
+        });
+      });
       
       const result = await channel.send({
         type: 'broadcast',
@@ -666,6 +697,13 @@ export class PartyService {
         payload: team
       });
       console.log('PartyService: Team created broadcast result:', result);
+      
+      // Clean up channel
+      console.log('PartyService: Cleaning up team creation broadcast channel');
+      supabase.removeChannel(channel);
+      
+      // Add small delay to ensure cleanup completes
+      await new Promise(resolve => setTimeout(resolve, 100));
     } catch (error) {
       console.error('PartyService: Error broadcasting team created:', error);
     }
