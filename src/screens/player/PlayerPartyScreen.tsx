@@ -55,6 +55,7 @@ export default function PlayerPartyScreen({ navigation, route }: any) {
   const [correctAnswer, setCorrectAnswer] = useState<'A' | 'B' | 'C' | 'D' | null>(null);
   const [roundIntroData, setRoundIntroData] = useState<{roundNumber: number; roundName: string; questionCount: number} | null>(null);
   const [roundCompleteData, setRoundCompleteData] = useState<{roundNumber: number; roundName: string} | null>(null);
+  const [showingThanks, setShowingThanks] = useState(false);
 
   useEffect(() => {
     loadGameData();
@@ -92,6 +93,10 @@ export default function PlayerPartyScreen({ navigation, route }: any) {
       .on('broadcast', { event: 'game_complete' }, (payload) => {
         console.log('PlayerPartyScreen: Game complete broadcast received:', payload);
         handleGameComplete();
+      })
+      .on('broadcast', { event: 'game_thanks' }, (payload) => {
+        console.log('PlayerPartyScreen: Game thanks broadcast received:', payload);
+        handleGameThanks();
       })
       .on('broadcast', { event: 'game_ended' }, (payload) => {
         console.log('PlayerPartyScreen: Game ended broadcast received:', payload);
@@ -264,9 +269,22 @@ export default function PlayerPartyScreen({ navigation, route }: any) {
     setHasAnswered(false);
     setRoundIntroData(null);
     setRoundCompleteData(null);
+    setShowingThanks(false);
     
     // Load final leaderboard
     loadLeaderboard();
+  };
+
+  const handleGameThanks = () => {
+    console.log('PlayerPartyScreen: Game thanks!');
+    setShowingThanks(true);
+    setCurrentQuestion(null);
+    setShowingResults(false);
+    setCorrectAnswer(null);
+    setSelectedAnswer(null);
+    setHasAnswered(false);
+    setRoundIntroData(null);
+    setRoundCompleteData(null);
   };
 
   const handleQuestionDataBroadcast = (questionData: any) => {
@@ -285,9 +303,10 @@ export default function PlayerPartyScreen({ navigation, route }: any) {
     setHasAnswered(false);
     setShowingResults(false);
     setCorrectAnswer(null);
-    // Clear round intro/complete screens
+    // Clear round intro/complete screens and thanks screen
     setRoundIntroData(null);
     setRoundCompleteData(null);
+    setShowingThanks(false);
     
     console.log('PlayerPartyScreen: Question set successfully:', {
       party_question_id: questionData.party_question_id,
@@ -720,6 +739,43 @@ export default function PlayerPartyScreen({ navigation, route }: any) {
     </ScrollView>
   );
 
+  const renderThanksScreen = () => (
+    <View style={[styles.centerContainer, { paddingTop: insets.top }]}>
+      <Card style={styles.statusCard}>
+        <Card.Content>
+          <Text variant="headlineSmall" style={styles.statusTitle}>
+            Thanks for Playing! 🎊
+          </Text>
+          <Text variant="bodyLarge" style={styles.statusSubtitle}>
+            Hope you had a great time at {party?.name}!
+          </Text>
+          <Text variant="bodyMedium" style={styles.statusDescription}>
+            The host will return to the party list shortly.
+          </Text>
+        </Card.Content>
+      </Card>
+
+      <Card style={styles.teamInfoCard}>
+        <Card.Content>
+          <Text variant="titleMedium" style={styles.teamTitle}>
+            Team Information
+          </Text>
+          <View style={styles.teamInfo}>
+            <View
+              style={[styles.colorIndicator, { backgroundColor: team?.color }]}
+            />
+            <Text variant="bodyLarge" style={styles.teamName}>
+              {team?.name}
+            </Text>
+          </View>
+          <Text variant="bodyMedium" style={styles.teamScore}>
+            Final Score: {team?.score || 0} points
+          </Text>
+        </Card.Content>
+      </Card>
+    </View>
+  );
+
   const renderCompletedScreen = () => (
     <ScrollView style={[styles.container, { paddingTop: insets.top }]} contentContainerStyle={styles.content}>
       <Card style={styles.statusCard}>
@@ -779,6 +835,11 @@ export default function PlayerPartyScreen({ navigation, route }: any) {
         <Text variant="bodyLarge">Game not found</Text>
       </View>
     );
+  }
+
+  // Show thanks screen if game thanks has been broadcast
+  if (showingThanks) {
+    return renderThanksScreen();
   }
 
   // Show round intro screen if we have round intro data

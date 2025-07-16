@@ -107,6 +107,14 @@ export default function HostPartyScreen({ navigation, route, onGameProgression }
         
       case GamePhase.GAME_COMPLETE:
         console.log('🚨 BUTTON PRESSED: ✅ CASE GAME_COMPLETE - Moving to GAME_THANKS');
+        
+        // Broadcast game thanks to players
+        try {
+          await PartyService.broadcastGameThanks(partyId);
+        } catch (error) {
+          console.error('Error broadcasting game thanks:', error);
+        }
+        
         setGameState(prev => ({ ...prev, gamePhase: GamePhase.GAME_THANKS }));
         break;
         
