@@ -2,14 +2,11 @@ import React, { useState } from 'react';
 import { View, StyleSheet, ScrollView, Alert } from 'react-native';
 import { Text, TextInput, Button, Card, Chip } from 'react-native-paper';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { useNavigation } from '@react-navigation/native';
-import { StackNavigationProp } from '@react-navigation/stack';
 import { HostStackParamList } from '../../navigation/HostNavigator';
 import { PartyService } from '../../services/partyService';
 import { useAuthStore } from '../../stores/authStore';
 import DateTimePicker from '@react-native-community/datetimepicker';
 
-type Navigation = StackNavigationProp<HostStackParamList, 'CreateParty'>;
 
 export default function CreatePartyScreen({ navigation }: { navigation: any }) {
   const { user } = useAuthStore();
@@ -52,7 +49,7 @@ export default function CreatePartyScreen({ navigation }: { navigation: any }) {
           {
             text: 'Set Up Rounds',
             onPress: () =>
-              navigation.replace('PartySetup', { partyId: party.id }),
+              navigation.navigate('PartySetup', { partyId: party.id }),
           },
         ]
       );
