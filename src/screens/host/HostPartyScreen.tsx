@@ -306,6 +306,15 @@ export default function HostPartyScreen({ navigation, route }: { navigation: any
             {party.name} - Host Controls
           </Text>
           
+          <View style={styles.gameCodeContainer}>
+            <Text variant="bodyMedium" style={styles.gameCodeLabel}>
+              Game Code:
+            </Text>
+            <Text variant="titleLarge" style={styles.gameCode}>
+              {party.join_code}
+            </Text>
+          </View>
+          
           <View style={styles.statusRow}>
             <Chip mode="flat" style={styles.statusChip}>
               Round {gameState.currentRound} of {rounds.length}
@@ -479,6 +488,25 @@ const styles = StyleSheet.create({
     color: '#1f2937',
     marginBottom: 16,
     textAlign: 'center',
+  },
+  gameCodeContainer: {
+    backgroundColor: '#f0f9ff',
+    padding: 12,
+    borderRadius: 8,
+    alignItems: 'center',
+    marginBottom: 16,
+    borderWidth: 2,
+    borderColor: '#3b82f6',
+  },
+  gameCodeLabel: {
+    color: '#6b7280',
+    marginBottom: 4,
+  },
+  gameCode: {
+    color: '#1e40af',
+    fontWeight: 'bold',
+    fontFamily: 'monospace',
+    letterSpacing: 2,
   },
   statusRow: {
     flexDirection: 'row',
