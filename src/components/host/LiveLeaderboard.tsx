@@ -75,7 +75,7 @@ export default function LiveLeaderboard({ partyId, maxTeams = 5, compact = false
   const setupRealtimeSubscription = () => {
     console.log('LiveLeaderboard: Setting up realtime subscription for party:', partyId);
     
-    // Subscribe to team score updates
+    // Subscribe to team score updates and team creation
     const teamSubscription = supabase
       .channel(`teams-${partyId}`)
       .on('broadcast', { event: 'team_score_updated' }, (payload) => {
@@ -104,6 +104,35 @@ export default function LiveLeaderboard({ partyId, maxTeams = 5, compact = false
           const sorted = updated.sort((a, b) => b.score - a.score);
           console.log('LiveLeaderboard: Teams after update and sort:', sorted.map(t => `${t.name}: ${t.score}`));
           return sorted;
+        });
+      })
+      .on('broadcast', { event: 'team_created' }, (payload) => {
+        console.log('LiveLeaderboard: Received team created:', payload);
+        const newTeam = payload.payload;
+        
+        if (!newTeam || !newTeam.id) {
+          console.warn('LiveLeaderboard: Invalid new team data received:', newTeam);
+          return;
+        }
+        
+        setTeams(prevTeams => {
+          console.log('LiveLeaderboard: Adding new team. Previous teams:', prevTeams.length);
+          // Check if team already exists (avoid duplicates)
+          const teamExists = prevTeams.some(team => team.id === newTeam.id);
+          if (teamExists) {
+            console.log('LiveLeaderboard: Team already exists, skipping add');
+            return prevTeams;
+          }
+          
+          // Add new team and re-sort
+          const updated = [...prevTeams, newTeam];
+          const sorted = updated.sort((a, b) => b.score - a.score);
+          console.log('LiveLeaderboard: Teams after adding new team:', sorted.map(t => `${t.name}: ${t.score}`));
+          
+          // Trigger animation for new team
+          animateTeamUpdate(newTeam.id);
+          
+          return sorted.slice(0, maxTeams);
         });
       })
       .subscribe((status) => {

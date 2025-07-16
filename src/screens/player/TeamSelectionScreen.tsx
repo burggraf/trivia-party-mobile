@@ -198,6 +198,7 @@ export default function TeamSelectionScreen({ navigation, route }: any) {
     <KeyboardAvoidingView 
       style={[styles.container, { paddingTop: insets.top }]}
       behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+      keyboardVerticalOffset={Platform.OS === 'ios' ? 0 : 20}
     >
       <View style={styles.header}>
         <Text variant="headlineSmall" style={styles.title}>
@@ -432,8 +433,12 @@ const styles = StyleSheet.create({
     textAlign: 'center',
   },
   createTeamCard: {
-    margin: 16,
+    position: 'absolute',
+    top: 100,
+    left: 16,
+    right: 16,
     elevation: 4,
+    backgroundColor: '#ffffff',
   },
   createTeamTitle: {
     color: '#1f2937',

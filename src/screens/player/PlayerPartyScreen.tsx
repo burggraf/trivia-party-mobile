@@ -5,7 +5,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { PartyService } from '../../services/partyService';
 import { Database } from '../../types/database';
 import { supabase } from '../../lib/supabase';
-import { convertShuffledAnswerToOriginal } from '../../utils/questionUtils';
+import { convertShuffledAnswerToOriginal, shuffleQuestionAnswers } from '../../utils/questionUtils';
 
 type Party = Database['public']['Tables']['parties']['Row'];
 type Team = Database['public']['Tables']['teams']['Row'];
@@ -106,8 +106,54 @@ export default function PlayerPartyScreen({ navigation, route }: any) {
 
       if (currentParty?.status === 'active') {
         setGameStatus('active');
-        // For active games, we rely on broadcasts for questions
-        // No need to load current question manually
+        
+        // Load current active question when joining game in progress
+        try {
+          console.log('PlayerPartyScreen: Loading current active question for game in progress');
+          const gameState = await PartyService.getCurrentGameState(partyId);
+          console.log('PlayerPartyScreen: Current game state:', gameState);
+          
+          if (gameState?.current_round_id && gameState?.current_question_order) {
+            const currentQuestion = await PartyService.getCurrentQuestion(
+              gameState.current_round_id, 
+              gameState.current_question_order
+            );
+            
+            if (currentQuestion && currentQuestion.questions) {
+              console.log('PlayerPartyScreen: Found current active question:', currentQuestion.questions.question);
+              
+              // Shuffle the answers for display
+              const shuffledData = shuffleQuestionAnswers({
+                question: currentQuestion.questions.question,
+                a: currentQuestion.questions.a,
+                b: currentQuestion.questions.b,
+                c: currentQuestion.questions.c,
+                d: currentQuestion.questions.d,
+              });
+              
+              // Convert to the format expected by the player screen
+              const questionData = {
+                party_question_id: currentQuestion.id,
+                question: shuffledData.originalQuestion,
+                shuffled_answers: shuffledData.shuffledAnswers,
+                category: currentQuestion.questions.category,
+                difficulty: currentQuestion.questions.difficulty,
+                round_name: 'Current Round',
+                question_number: currentQuestion.question_order
+              };
+              
+              setCurrentQuestion(questionData);
+              setCurrentQuestionId(currentQuestion.id);
+              console.log('PlayerPartyScreen: Set current question for mid-game join');
+            } else {
+              console.log('PlayerPartyScreen: No current active question found');
+            }
+          } else {
+            console.log('PlayerPartyScreen: No active game state found');
+          }
+        } catch (error) {
+          console.error('PlayerPartyScreen: Error loading current active question:', error);
+        }
       } else if (currentParty?.status === 'completed') {
         setGameStatus('completed');
         loadLeaderboard();

@@ -234,6 +234,16 @@ export class PartyService {
 
     if (updateError) throw updateError;
 
+    // Broadcast team creation if it's a new team (not joining existing)
+    if (!existingTeam) {
+      try {
+        await this.broadcastTeamCreated(partyId, team);
+      } catch (error) {
+        console.error('Error broadcasting team creation:', error);
+        // Don't throw error here to avoid breaking team creation
+      }
+    }
+
     return team;
   }
 
@@ -638,6 +648,26 @@ export class PartyService {
       console.log('PartyService: Team score broadcast result:', result);
     } catch (error) {
       console.error('PartyService: Error broadcasting team score update:', error);
+    }
+  }
+
+  static async broadcastTeamCreated(partyId: string, team: Team) {
+    console.log('PartyService: Broadcasting team created for party:', partyId, 'team:', team.id);
+    try {
+      const channelName = `teams-${partyId}`;
+      const channel = supabase.channel(channelName);
+      
+      // Subscribe to the channel if not already subscribed
+      await channel.subscribe();
+      
+      const result = await channel.send({
+        type: 'broadcast',
+        event: 'team_created',
+        payload: team
+      });
+      console.log('PartyService: Team created broadcast result:', result);
+    } catch (error) {
+      console.error('PartyService: Error broadcasting team created:', error);
     }
   }
 }
