@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { View, StyleSheet, ScrollView, Alert } from 'react-native';
 import { Text, Card, Button } from 'react-native-paper';
 import { useRoute } from '@react-navigation/native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { PartyService } from '../../services/partyService';
 import { Database } from '../../types/database';
 import { supabase } from '../../lib/supabase';
@@ -25,6 +26,7 @@ interface CurrentQuestion {
 }
 
 export default function PlayerPartyScreen() {
+  const insets = useSafeAreaInsets();
   const route = useRoute();
   const { partyId, teamId } = route.params as {
     partyId: string;
@@ -267,7 +269,7 @@ export default function PlayerPartyScreen() {
 
 
   const renderWaitingScreen = () => (
-    <View style={styles.centerContainer}>
+    <View style={[styles.centerContainer, { paddingTop: insets.top }]}>
       <Card style={styles.statusCard}>
         <Card.Content>
           <Text variant="headlineSmall" style={styles.statusTitle}>
@@ -319,7 +321,7 @@ export default function PlayerPartyScreen() {
   );
 
   const renderQuestionScreen = () => (
-    <ScrollView style={styles.container} contentContainerStyle={styles.content}>
+    <ScrollView style={[styles.container, { paddingTop: insets.top }]} contentContainerStyle={styles.content}>
       <Card style={styles.questionCard}>
         <Card.Content>
           <View style={styles.questionHeader}>
@@ -412,7 +414,7 @@ export default function PlayerPartyScreen() {
   );
 
   const renderCompletedScreen = () => (
-    <ScrollView style={styles.container} contentContainerStyle={styles.content}>
+    <ScrollView style={[styles.container, { paddingTop: insets.top }]} contentContainerStyle={styles.content}>
       <Card style={styles.statusCard}>
         <Card.Content>
           <Text variant="headlineSmall" style={styles.statusTitle}>
@@ -458,7 +460,7 @@ export default function PlayerPartyScreen() {
 
   if (loading) {
     return (
-      <View style={styles.centerContainer}>
+      <View style={[styles.centerContainer, { paddingTop: insets.top }]}>
         <Text variant="bodyLarge">Loading game...</Text>
       </View>
     );
@@ -466,7 +468,7 @@ export default function PlayerPartyScreen() {
 
   if (!party || !team) {
     return (
-      <View style={styles.centerContainer}>
+      <View style={[styles.centerContainer, { paddingTop: insets.top }]}>
         <Text variant="bodyLarge">Game not found</Text>
       </View>
     );

@@ -3,12 +3,14 @@ import { View, StyleSheet, Alert, ScrollView } from 'react-native';
 import { Text, Card, Button, TextInput } from 'react-native-paper';
 import { useRoute, useNavigation } from '@react-navigation/native';
 import { StackNavigationProp } from '@react-navigation/stack';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { PlayerStackParamList } from '../../navigation/PlayerNavigator';
 import { PartyService } from '../../services/partyService';
 
 type Navigation = StackNavigationProp<PlayerStackParamList, 'JoinParty'>;
 
 export default function JoinPartyScreen() {
+  const insets = useSafeAreaInsets();
   const navigation = useNavigation<Navigation>();
   const route = useRoute();
   const { joinCode: scannedCode } = (route.params as { joinCode?: string }) || {};
@@ -63,7 +65,7 @@ export default function JoinPartyScreen() {
   };
 
   return (
-    <ScrollView style={styles.container} contentContainerStyle={styles.contentContainer}>
+    <ScrollView style={[styles.container, { paddingTop: insets.top }]} contentContainerStyle={styles.contentContainer}>
       <Text variant="headlineSmall" style={styles.title}>
         🚨 TEST BUILD 207 - JOIN PARTY 🚨
       </Text>

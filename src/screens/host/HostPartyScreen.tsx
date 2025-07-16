@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { View, StyleSheet, ScrollView, Alert } from 'react-native';
 import { Text, Card, Button, Chip, Divider } from 'react-native-paper';
 import { useFocusEffect } from '@react-navigation/native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { HostStackParamList } from '../../navigation/HostNavigator';
 import { PartyService } from '../../services/partyService';
 import { Database } from '../../types/database';
@@ -22,6 +23,7 @@ interface GameState {
 type Navigation = StackNavigationProp<HostStackParamList, 'HostParty'>;
 
 export default function HostPartyScreen({ navigation, route }: { navigation: any; route: any }) {
+  const insets = useSafeAreaInsets();
   const { partyId } = route.params as { partyId: string };
 
   const [party, setParty] = useState<Party | null>(null);
@@ -299,7 +301,7 @@ export default function HostPartyScreen({ navigation, route }: { navigation: any
   const currentRound = getCurrentRound();
 
   return (
-    <ScrollView style={styles.container} contentContainerStyle={styles.content}>
+    <ScrollView style={[styles.container, { paddingTop: insets.top }]} contentContainerStyle={styles.content}>
       {/* Game Status Card */}
       <Card style={styles.statusCard}>
         <Card.Content>

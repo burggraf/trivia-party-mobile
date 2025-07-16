@@ -3,6 +3,7 @@ import { View, StyleSheet, Alert, Platform } from 'react-native';
 import { Text, Button, Card, TextInput, ActivityIndicator } from 'react-native-paper';
 import { useNavigation } from '@react-navigation/native';
 import { StackNavigationProp } from '@react-navigation/stack';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { PlayerStackParamList } from '../../navigation/PlayerNavigator';
 import { PartyService } from '../../services/partyService';
 
@@ -11,6 +12,7 @@ import { PartyService } from '../../services/partyService';
 type Navigation = StackNavigationProp<PlayerStackParamList, 'QRScanner'>;
 
 export default function QRScannerScreen() {
+  const insets = useSafeAreaInsets();
   const navigation = useNavigation<Navigation>();
   const [manualCode, setManualCode] = useState('');
   const [loading, setLoading] = useState(false);
@@ -98,7 +100,7 @@ export default function QRScannerScreen() {
   // Show loading while checking permissions
   if (hasPermission === null) {
     return (
-      <View style={styles.centerContainer}>
+      <View style={[styles.centerContainer, { paddingTop: insets.top }]}>
         <ActivityIndicator size="large" />
         <Text variant="bodyMedium" style={styles.loadingText}>
           Checking camera permissions...
@@ -110,7 +112,7 @@ export default function QRScannerScreen() {
   // QR Scanner temporarily disabled - skip to manual entry
 
   return (
-    <View style={styles.container}>
+    <View style={[styles.container, { paddingTop: insets.top }]}>
       <View style={styles.header}>
         <Text variant="headlineSmall" style={styles.headerTitle}>
           Join Party

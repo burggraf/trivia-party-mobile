@@ -2,14 +2,16 @@ import React from 'react';
 import { View, StyleSheet } from 'react-native';
 import { Text, Card, Button } from 'react-native-paper';
 import { useNavigation } from '@react-navigation/native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useAuthStore } from '../../stores/authStore';
 
 export default function HomeScreen() {
+  const insets = useSafeAreaInsets();
   const navigation = useNavigation();
   const { user } = useAuthStore();
 
   return (
-    <View style={styles.container}>
+    <View style={[styles.container, { paddingTop: insets.top }]}>
       <Card style={styles.card}>
         <Card.Content>
           <Text variant="headlineMedium" style={styles.title}>

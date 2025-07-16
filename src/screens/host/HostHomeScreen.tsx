@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { View, StyleSheet, FlatList, RefreshControl } from 'react-native';
 import { Text, Card, Button, FAB, Chip } from 'react-native-paper';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { HostStackParamList } from '../../navigation/HostNavigator';
 import { PartyService } from '../../services/partyService';
 import { Database } from '../../types/database';
@@ -8,6 +9,7 @@ import { Database } from '../../types/database';
 type Party = Database['public']['Tables']['parties']['Row'];
 
 export default function HostHomeScreen({ navigation }: { navigation: any }) {
+  const insets = useSafeAreaInsets();
   const [parties, setParties] = useState<Party[]>([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
@@ -128,7 +130,7 @@ export default function HostHomeScreen({ navigation }: { navigation: any }) {
   }
 
   return (
-    <View style={styles.container}>
+    <View style={[styles.container, { paddingTop: insets.top }]}>
       <Text variant="headlineSmall" style={styles.title}>
         🚨 OTA UPDATE TEST - Build 210+ 🚨
       </Text>

@@ -3,6 +3,7 @@ import { View, StyleSheet, FlatList, Alert } from 'react-native';
 import { Text, Card, Button, TextInput, FAB, Chip } from 'react-native-paper';
 import { useRoute, useNavigation } from '@react-navigation/native';
 import { StackNavigationProp } from '@react-navigation/stack';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { PlayerStackParamList } from '../../navigation/PlayerNavigator';
 import { PartyService } from '../../services/partyService';
 import { useAuthStore } from '../../stores/authStore';
@@ -24,6 +25,7 @@ const TEAM_COLORS = [
 ];
 
 export default function TeamSelectionScreen() {
+  const insets = useSafeAreaInsets();
   const route = useRoute();
   const navigation = useNavigation<Navigation>();
   const { user } = useAuthStore();
@@ -199,7 +201,7 @@ export default function TeamSelectionScreen() {
   }
 
   return (
-    <View style={styles.container}>
+    <View style={[styles.container, { paddingTop: insets.top }]}>
       <View style={styles.header}>
         <Text variant="headlineSmall" style={styles.title}>
           {existingTeam ? 'Rejoin Your Team' : 'Join a Team'}

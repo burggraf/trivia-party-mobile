@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { View, StyleSheet, ScrollView, Dimensions } from 'react-native';
 import { Text, Card, Button, Chip, SegmentedButtons, DataTable } from 'react-native-paper';
 import { useRoute, useNavigation } from '@react-navigation/native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { PartyService } from '../../services/partyService';
 import { Database } from '../../types/database';
 
@@ -32,6 +33,7 @@ interface RoundTeamData {
 }
 
 export default function EnhancedLeaderboardScreen() {
+  const insets = useSafeAreaInsets();
   const route = useRoute();
   const navigation = useNavigation();
   const { partyId } = route.params as { partyId: string };
@@ -265,7 +267,7 @@ export default function EnhancedLeaderboardScreen() {
   }
 
   return (
-    <View style={styles.container}>
+    <View style={[styles.container, { paddingTop: insets.top }]}>
       <View style={styles.header}>
         <Text variant="headlineSmall" style={styles.title}>
           {party.name} - Leaderboard

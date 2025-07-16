@@ -3,6 +3,7 @@ import { View, StyleSheet, Alert, ScrollView } from 'react-native';
 import { Text, TextInput, Button, Card, Divider } from 'react-native-paper';
 import { useNavigation } from '@react-navigation/native';
 import { StackNavigationProp } from '@react-navigation/stack';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { PlayerStackParamList } from '../../navigation/PlayerNavigator';
 import { PartyService } from '../../services/partyService';
 
@@ -12,6 +13,7 @@ let isQRScannerAvailable = false;
 type Navigation = StackNavigationProp<PlayerStackParamList, 'PlayerHome'>;
 
 export default function PlayerHomeScreen() {
+  const insets = useSafeAreaInsets();
   const navigation = useNavigation<Navigation>();
   const [joinCode, setJoinCode] = useState('');
   const [loading, setLoading] = useState(false);
@@ -56,7 +58,7 @@ export default function PlayerHomeScreen() {
   };
 
   return (
-    <ScrollView style={styles.container} contentContainerStyle={styles.contentContainer}>
+    <ScrollView style={[styles.container, { paddingTop: insets.top }]} contentContainerStyle={styles.contentContainer}>
       <Text variant="headlineSmall" style={styles.title}>
         Join Trivia Party
       </Text>
