@@ -627,6 +627,9 @@ export class PartyService {
       const channelName = `teams-${partyId}`;
       const channel = supabase.channel(channelName);
       
+      // Subscribe to the channel if not already subscribed
+      await channel.subscribe();
+      
       const result = await channel.send({
         type: 'broadcast',
         event: 'team_score_updated',

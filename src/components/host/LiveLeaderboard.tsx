@@ -25,7 +25,8 @@ export default function LiveLeaderboard({ partyId, maxTeams = 5, compact = false
 
   useEffect(() => {
     loadTeams();
-    setupRealtimeSubscription();
+    const cleanup = setupRealtimeSubscription();
+    return cleanup;
   }, [partyId]);
 
   const loadTeams = async () => {
@@ -70,14 +71,25 @@ export default function LiveLeaderboard({ partyId, maxTeams = 5, compact = false
   };
 
   const setupRealtimeSubscription = () => {
+    console.log('LiveLeaderboard: Setting up realtime subscription for party:', partyId);
+    
     // Subscribe to team score updates
     const teamSubscription = supabase
       .channel(`teams-${partyId}`)
       .on('broadcast', { event: 'team_score_updated' }, (payload) => {
+        console.log('LiveLeaderboard: Received team score update:', payload);
         const updatedTeam = payload.payload;
+        
+        if (!updatedTeam || !updatedTeam.id) {
+          console.warn('LiveLeaderboard: Invalid team data received:', updatedTeam);
+          return;
+        }
+        
         setTeams(prevTeams => {
+          console.log('LiveLeaderboard: Updating teams. Previous teams:', prevTeams.length);
           const updated = prevTeams.map(team => {
             if (team.id === updatedTeam.id) {
+              console.log(`LiveLeaderboard: Updating team ${team.name} score from ${team.score} to ${updatedTeam.score}`);
               // Trigger animation if score changed
               if (team.score !== updatedTeam.score) {
                 animateTeamUpdate(team.id);
@@ -87,10 +99,14 @@ export default function LiveLeaderboard({ partyId, maxTeams = 5, compact = false
             return team;
           });
           // Re-sort by score
-          return updated.sort((a, b) => b.score - a.score);
+          const sorted = updated.sort((a, b) => b.score - a.score);
+          console.log('LiveLeaderboard: Teams after update and sort:', sorted.map(t => `${t.name}: ${t.score}`));
+          return sorted;
         });
       })
-      .subscribe();
+      .subscribe((status) => {
+        console.log('LiveLeaderboard: Subscription status:', status);
+      });
 
     return () => {
       supabase.removeChannel(teamSubscription);
