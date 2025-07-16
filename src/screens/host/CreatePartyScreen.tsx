@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { View, StyleSheet, ScrollView, Alert } from 'react-native';
 import { Text, TextInput, Button, Card, Chip } from 'react-native-paper';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
 import { StackNavigationProp } from '@react-navigation/stack';
 import { HostStackParamList } from '../../navigation/HostNavigator';
@@ -12,6 +13,7 @@ type Navigation = StackNavigationProp<HostStackParamList, 'CreateParty'>;
 
 export default function CreatePartyScreen({ navigation }: { navigation: any }) {
   const { user } = useAuthStore();
+  const insets = useSafeAreaInsets();
   const [loading, setLoading] = useState(false);
 
   // Form state
@@ -81,7 +83,7 @@ export default function CreatePartyScreen({ navigation }: { navigation: any }) {
   };
 
   return (
-    <ScrollView style={styles.container} contentContainerStyle={styles.content}>
+    <ScrollView style={[styles.container, { paddingTop: insets.top }]} contentContainerStyle={styles.content}>
       <Text variant="headlineSmall" style={styles.title}>
         Create New Party
       </Text>

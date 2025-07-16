@@ -56,19 +56,33 @@ export default function HostWithExternalDisplay({ navigation, route }: HostWithE
     loadGameData();
     setupBroadcastSubscription();
     
-    // Listen for external display connection
-    ExternalDisplayInstance.onScreenConnect(() => {
-      console.log('External display connected!');
-      setExternalDisplayConnected(true);
-    });
-    
-    ExternalDisplayInstance.onScreenDisconnect(() => {
-      console.log('External display disconnected!');
-      setExternalDisplayConnected(false);
-    });
+    // Listen for external display connection with error handling
+    try {
+      if (ExternalDisplayInstance.onScreenConnect) {
+        ExternalDisplayInstance.onScreenConnect(() => {
+          console.log('External display connected!');
+          setExternalDisplayConnected(true);
+        });
+      }
+      
+      if (ExternalDisplayInstance.onScreenDisconnect) {
+        ExternalDisplayInstance.onScreenDisconnect(() => {
+          console.log('External display disconnected!');
+          setExternalDisplayConnected(false);
+        });
+      }
+    } catch (error) {
+      console.log('External display not available:', error);
+    }
 
     return () => {
-      ExternalDisplayInstance.stopPresenting();
+      try {
+        if (ExternalDisplayInstance.stopPresenting) {
+          ExternalDisplayInstance.stopPresenting();
+        }
+      } catch (error) {
+        console.log('Error stopping external display:', error);
+      }
     };
   }, [partyId]);
 
@@ -249,24 +263,37 @@ export default function HostWithExternalDisplay({ navigation, route }: HostWithE
       return;
     }
 
-    // Start presenting to external display
-    ExternalDisplayInstance.startPresenting(
-      <ExternalTVDisplay
-        party={party}
-        currentQuestion={shuffledQuestion}
-        gameState={gameState}
-        teams={teams}
-        showingResults={showingResults}
-      />,
-      { 
-        backgroundColor: '#0f172a',
-        initialProps: {} 
+    try {
+      // Start presenting to external display
+      if (ExternalDisplayInstance.startPresenting) {
+        ExternalDisplayInstance.startPresenting(
+          <ExternalTVDisplay
+            party={party}
+            currentQuestion={shuffledQuestion}
+            gameState={gameState}
+            teams={teams}
+            showingResults={showingResults}
+          />,
+          { 
+            backgroundColor: '#0f172a',
+            initialProps: {} 
+          }
+        );
       }
-    );
+    } catch (error) {
+      console.log('Error starting external display:', error);
+      Alert.alert('Error', 'Failed to start external display');
+    }
   };
 
   const stopExternalDisplay = () => {
-    ExternalDisplayInstance.stopPresenting();
+    try {
+      if (ExternalDisplayInstance.stopPresenting) {
+        ExternalDisplayInstance.stopPresenting();
+      }
+    } catch (error) {
+      console.log('Error stopping external display:', error);
+    }
   };
 
   if (loading) {
@@ -293,7 +320,7 @@ export default function HostWithExternalDisplay({ navigation, route }: HostWithE
           <Text variant="titleMedium" style={styles.tvStatusText}>
             TV Display: {externalDisplayConnected ? 'Connected' : 'Not Connected'}
           </Text>
-          {ExternalDisplayInstance.isPresenting() && (
+          {ExternalDisplayInstance.isPresenting && ExternalDisplayInstance.isPresenting() && (
             <Chip mode="flat" style={styles.presentingChip}>
               Presenting to TV
             </Chip>
@@ -301,7 +328,7 @@ export default function HostWithExternalDisplay({ navigation, route }: HostWithE
         </View>
         
         <View style={styles.tvButtons}>
-          {externalDisplayConnected && !ExternalDisplayInstance.isPresenting() && (
+          {externalDisplayConnected && !(ExternalDisplayInstance.isPresenting && ExternalDisplayInstance.isPresenting()) && (
             <Button
               mode="contained"
               onPress={startExternalDisplay}
@@ -312,7 +339,7 @@ export default function HostWithExternalDisplay({ navigation, route }: HostWithE
             </Button>
           )}
           
-          {ExternalDisplayInstance.isPresenting() && (
+          {ExternalDisplayInstance.isPresenting && ExternalDisplayInstance.isPresenting() && (
             <Button
               mode="outlined"
               onPress={stopExternalDisplay}

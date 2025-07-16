@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { View, StyleSheet, ScrollView, FlatList } from 'react-native';
 import { Text, Card, Button, FAB, Chip, Divider } from 'react-native-paper';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import QRCode from 'react-native-qrcode-svg';
 import { HostStackParamList } from '../../navigation/HostNavigator';
 import { PartyService } from '../../services/partyService';
@@ -13,6 +14,7 @@ type Navigation = StackNavigationProp<HostStackParamList, 'PartySetup'>;
 
 export default function PartySetupScreen({ navigation, route }: { navigation: any; route: any }) {
   const { partyId } = route.params as { partyId: string };
+  const insets = useSafeAreaInsets();
 
   const [party, setParty] = useState<Party | null>(null);
   const [rounds, setRounds] = useState<Round[]>([]);
@@ -226,7 +228,7 @@ export default function PartySetupScreen({ navigation, route }: { navigation: an
 
   if (loading) {
     return (
-      <View style={styles.centerContainer}>
+      <View style={[styles.centerContainer, { paddingTop: insets.top }]}>
         <Text variant="bodyLarge">Loading party setup...</Text>
       </View>
     );
@@ -234,14 +236,14 @@ export default function PartySetupScreen({ navigation, route }: { navigation: an
 
   if (!party) {
     return (
-      <View style={styles.centerContainer}>
+      <View style={[styles.centerContainer, { paddingTop: insets.top }]}>
         <Text variant="bodyLarge">Party not found</Text>
       </View>
     );
   }
 
   return (
-    <View style={styles.container}>
+    <View style={[styles.container, { paddingTop: insets.top }]}>
       <ScrollView contentContainerStyle={styles.content}>
         <Card style={styles.partyInfoCard}>
           <Card.Content>
@@ -361,8 +363,9 @@ export default function PartySetupScreen({ navigation, route }: { navigation: an
       {party.status === 'draft' && (
         <FAB
           icon="plus"
-          style={styles.fab}
+          style={[styles.fab, { bottom: insets.bottom + 16 }]}
           onPress={handleShowModal}
+          label="Add Round"
         />
       )}
 
