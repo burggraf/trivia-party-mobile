@@ -1,19 +1,13 @@
 import React, { useState, useEffect } from 'react';
 import { View, StyleSheet, Alert, Platform } from 'react-native';
 import { Text, Button, Card, TextInput, ActivityIndicator } from 'react-native-paper';
-import { useNavigation } from '@react-navigation/native';
-import { StackNavigationProp } from '@react-navigation/stack';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { PlayerStackParamList } from '../../navigation/PlayerNavigator';
 import { PartyService } from '../../services/partyService';
 
 // QR Scanner temporarily disabled - manual entry only
 
-type Navigation = StackNavigationProp<PlayerStackParamList, 'QRScanner'>;
-
-export default function QRScannerScreen() {
+export default function QRScannerScreen({ navigation }: any) {
   const insets = useSafeAreaInsets();
-  const navigation = useNavigation<Navigation>();
   const [manualCode, setManualCode] = useState('');
   const [loading, setLoading] = useState(false);
   const [hasPermission, setHasPermission] = useState<boolean | null>(null);

@@ -1,20 +1,14 @@
 import React, { useState } from 'react';
 import { View, StyleSheet, Alert, ScrollView } from 'react-native';
 import { Text, TextInput, Button, Card, Divider } from 'react-native-paper';
-import { useNavigation } from '@react-navigation/native';
-import { StackNavigationProp } from '@react-navigation/stack';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { PlayerStackParamList } from '../../navigation/PlayerNavigator';
 import { PartyService } from '../../services/partyService';
 
 // QR Scanner temporarily disabled
 let isQRScannerAvailable = false;
 
-type Navigation = StackNavigationProp<PlayerStackParamList, 'PlayerHome'>;
-
-export default function PlayerHomeScreen() {
+export default function PlayerHomeScreen({ navigation }: any) {
   const insets = useSafeAreaInsets();
-  const navigation = useNavigation<Navigation>();
   const [joinCode, setJoinCode] = useState('');
   const [loading, setLoading] = useState(false);
 

@@ -1,17 +1,13 @@
 import React, { useState, useEffect } from 'react';
 import { View, StyleSheet, FlatList, Alert } from 'react-native';
 import { Text, Card, Button, TextInput, FAB, Chip } from 'react-native-paper';
-import { useRoute, useNavigation } from '@react-navigation/native';
-import { StackNavigationProp } from '@react-navigation/stack';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { PlayerStackParamList } from '../../navigation/PlayerNavigator';
 import { PartyService } from '../../services/partyService';
 import { useAuthStore } from '../../stores/authStore';
 import { Database } from '../../types/database';
 
 type Party = Database['public']['Tables']['parties']['Row'];
 type Team = Database['public']['Tables']['teams']['Row'];
-type Navigation = StackNavigationProp<PlayerStackParamList, 'TeamSelection'>;
 
 const TEAM_COLORS = [
   '#ef4444', // red
@@ -24,12 +20,10 @@ const TEAM_COLORS = [
   '#ec4899', // pink
 ];
 
-export default function TeamSelectionScreen() {
+export default function TeamSelectionScreen({ navigation, route }: any) {
   const insets = useSafeAreaInsets();
-  const route = useRoute();
-  const navigation = useNavigation<Navigation>();
   const { user } = useAuthStore();
-  const { partyId } = route.params as { partyId: string };
+  const { partyId } = route.params || {};
 
   const [party, setParty] = useState<Party | null>(null);
   const [teams, setTeams] = useState<Team[]>([]);
