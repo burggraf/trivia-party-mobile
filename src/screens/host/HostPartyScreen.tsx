@@ -275,9 +275,6 @@ export default function HostPartyScreen({ navigation, route }: { navigation: any
 
   const getCurrentRound = () => rounds[gameState.currentRound - 1];
 
-  const handleOpenTVDisplay = () => {
-    navigation.navigate('TVDisplay', { partyId });
-  };
 
   const handleOpenEnhancedLeaderboard = () => {
     navigation.navigate('EnhancedLeaderboard', { partyId });
@@ -353,25 +350,16 @@ export default function HostPartyScreen({ navigation, route }: { navigation: any
       {/* Live Leaderboard */}
       <LiveLeaderboard partyId={partyId} maxTeams={5} compact={true} />
 
-      {/* TV Display Controls */}
-      <Card style={styles.tvDisplayCard}>
+      {/* Analytics Controls */}
+      <Card style={styles.analyticsCard}>
         <Card.Content>
           <Text variant="titleMedium" style={styles.sectionTitle}>
-            Display & Analytics
+            Analytics
           </Text>
-          <Text variant="bodyMedium" style={styles.tvDisplayDescription}>
-            Access TV-optimized display and enhanced leaderboard with round-by-round analytics.
+          <Text variant="bodyMedium" style={styles.analyticsDescription}>
+            Access enhanced leaderboard with round-by-round analytics.
           </Text>
           <View style={styles.buttonRow}>
-            <Button
-              mode="contained"
-              onPress={handleOpenTVDisplay}
-              style={[styles.actionButton, styles.tvDisplayButton]}
-              icon="television"
-            >
-              TV Display
-            </Button>
-            
             <Button
               mode="contained"
               onPress={handleOpenEnhancedLeaderboard}
@@ -530,12 +518,12 @@ const styles = StyleSheet.create({
     marginBottom: 16,
     elevation: 2,
   },
-  tvDisplayCard: {
+  analyticsCard: {
     marginBottom: 16,
     elevation: 2,
     backgroundColor: '#f0f9ff',
   },
-  tvDisplayDescription: {
+  analyticsDescription: {
     color: '#374151',
     marginBottom: 16,
     lineHeight: 20,
@@ -547,9 +535,6 @@ const styles = StyleSheet.create({
   },
   actionButton: {
     flex: 1,
-  },
-  tvDisplayButton: {
-    backgroundColor: '#6366f1',
   },
   leaderboardButton: {
     backgroundColor: '#059669',

@@ -165,9 +165,6 @@ export default function PartySetupScreen({ navigation, route }: { navigation: an
     }
   };
 
-  const handleOpenTVDisplay = () => {
-    navigation.navigate('TVDisplay', { partyId });
-  };
 
   const handleOpenEnhancedLeaderboard = () => {
     navigation.navigate('EnhancedLeaderboard', { partyId });
@@ -290,15 +287,6 @@ export default function PartySetupScreen({ navigation, route }: { navigation: an
             <Divider style={styles.divider} />
             
             <View style={styles.buttonRow}>
-              <Button
-                mode="outlined"
-                onPress={handleOpenTVDisplay}
-                style={[styles.actionButton, styles.tvDisplayButton]}
-                icon="television"
-              >
-                TV Display
-              </Button>
-              
               <Button
                 mode="outlined"
                 onPress={handleOpenEnhancedLeaderboard}
@@ -498,9 +486,6 @@ const styles = StyleSheet.create({
   },
   actionButton: {
     flex: 1,
-  },
-  tvDisplayButton: {
-    borderColor: '#6366f1',
   },
   leaderboardButton: {
     borderColor: '#059669',

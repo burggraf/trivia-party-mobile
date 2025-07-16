@@ -4,7 +4,6 @@ import HostHomeScreen from '../screens/host/HostHomeScreen';
 import CreatePartyScreen from '../screens/host/CreatePartyScreen';
 import PartySetupScreen from '../screens/host/PartySetupScreen';
 import HostPartyScreen from '../screens/host/HostPartyScreen';
-import HostWithExternalDisplay from '../screens/host/HostWithExternalDisplay';
 import EnhancedLeaderboardScreen from '../screens/host/EnhancedLeaderboardScreen';
 
 export type HostStackParamList = {
@@ -12,7 +11,6 @@ export type HostStackParamList = {
   CreateParty: undefined;
   PartySetup: { partyId: string };
   HostParty: { partyId: string };
-  TVDisplay: { partyId: string };
   EnhancedLeaderboard: { partyId: string };
 };
 
@@ -21,7 +19,6 @@ const routes = [
   { name: 'CreateParty', component: CreatePartyScreen, title: 'Create Party' },
   { name: 'PartySetup', component: PartySetupScreen, title: 'Party Setup' },
   { name: 'HostParty', component: HostPartyScreen, title: 'Host Party' },
-  { name: 'TVDisplay', component: HostWithExternalDisplay, title: 'Host Controls with TV Display', headerShown: false },
   { name: 'EnhancedLeaderboard', component: EnhancedLeaderboardScreen, title: 'Enhanced Leaderboard' },
 ];
 

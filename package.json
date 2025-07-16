@@ -26,7 +26,6 @@
     "expo-updates": "^0.28.17",
     "react": "19.0.0",
     "react-native": "0.79.5",
-    "react-native-external-display": "^0.6.6",
     "react-native-paper": "^5.14.5",
     "react-native-qrcode-svg": "^6.3.15",
     "react-native-safe-area-context": "5.4.0",
