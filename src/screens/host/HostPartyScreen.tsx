@@ -278,9 +278,6 @@ export default function HostPartyScreen({ navigation, route }: { navigation: any
   const getCurrentRound = () => rounds[gameState.currentRound - 1];
 
 
-  const handleOpenEnhancedLeaderboard = () => {
-    navigation.navigate('EnhancedLeaderboard', { partyId });
-  };
 
   if (loading) {
     return (
@@ -352,27 +349,6 @@ export default function HostPartyScreen({ navigation, route }: { navigation: any
       {/* Live Leaderboard */}
       <LiveLeaderboard partyId={partyId} maxTeams={5} compact={true} />
 
-      {/* Analytics Controls */}
-      <Card style={styles.analyticsCard}>
-        <Card.Content>
-          <Text variant="titleMedium" style={styles.sectionTitle}>
-            Analytics
-          </Text>
-          <Text variant="bodyMedium" style={styles.analyticsDescription}>
-            Access enhanced leaderboard with round-by-round analytics.
-          </Text>
-          <View style={styles.buttonRow}>
-            <Button
-              mode="contained"
-              onPress={handleOpenEnhancedLeaderboard}
-              style={[styles.actionButton, styles.leaderboardButton]}
-              icon="trophy"
-            >
-              Leaderboard
-            </Button>
-          </View>
-        </Card.Content>
-      </Card>
 
       {/* Current Question Display */}
       {shuffledQuestion && (
@@ -537,9 +513,6 @@ const styles = StyleSheet.create({
   },
   actionButton: {
     flex: 1,
-  },
-  leaderboardButton: {
-    backgroundColor: '#059669',
   },
   sectionTitle: {
     color: '#1f2937',

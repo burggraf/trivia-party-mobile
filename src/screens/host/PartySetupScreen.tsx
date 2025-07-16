@@ -166,9 +166,6 @@ export default function PartySetupScreen({ navigation, route }: { navigation: an
   };
 
 
-  const handleOpenEnhancedLeaderboard = () => {
-    navigation.navigate('EnhancedLeaderboard', { partyId });
-  };
 
   const renderRoundCard = ({ item }: { item: Round }) => (
     <Card style={styles.roundCard}>
@@ -286,16 +283,6 @@ export default function PartySetupScreen({ navigation, route }: { navigation: an
             
             <Divider style={styles.divider} />
             
-            <View style={styles.buttonRow}>
-              <Button
-                mode="outlined"
-                onPress={handleOpenEnhancedLeaderboard}
-                style={[styles.actionButton, styles.leaderboardButton]}
-                icon="trophy"
-              >
-                Leaderboard
-              </Button>
-            </View>
           </Card.Content>
         </Card>
 
@@ -486,8 +473,5 @@ const styles = StyleSheet.create({
   },
   actionButton: {
     flex: 1,
-  },
-  leaderboardButton: {
-    borderColor: '#059669',
   },
 });
