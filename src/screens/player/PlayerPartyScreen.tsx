@@ -106,12 +106,29 @@ export default function PlayerPartyScreen({ navigation, route }: any) {
         PartyService.getPartyTeams(partyId),
       ]);
 
-      const currentTeam = teams.find((t) => t.id === teamId);
+      let currentTeam = teams.find((t) => t.id === teamId);
+      
+      // If team not found immediately (possible race condition with new team creation),
+      // retry once after a short delay
+      if (!currentTeam && teamId) {
+        console.log('PlayerPartyScreen: Team not found in initial load, retrying after delay...');
+        await new Promise(resolve => setTimeout(resolve, 500));
+        
+        const retryTeams = await PartyService.getPartyTeams(partyId);
+        currentTeam = retryTeams.find((t) => t.id === teamId);
+        
+        if (currentTeam) {
+          console.log('PlayerPartyScreen: Team found on retry:', currentTeam.name);
+        } else {
+          console.warn('PlayerPartyScreen: Team still not found after retry, teamId:', teamId);
+        }
+      }
 
       setParty(currentParty);
       setTeam(currentTeam || null);
 
       if (currentParty?.status === 'active') {
+        console.log('PlayerPartyScreen: Party is active, loading current question...');
         setGameStatus('active');
         
         // Load current active question when joining game in progress
@@ -561,6 +578,14 @@ export default function PlayerPartyScreen({ navigation, route }: any) {
     case 'waiting':
       return renderWaitingScreen();
     case 'active':
+      // Show loading if game is active but no question loaded yet (e.g., new team joining mid-game)
+      if (!currentQuestion) {
+        return (
+          <View style={[styles.centerContainer, { paddingTop: insets.top }]}>
+            <Text variant="bodyLarge">Loading current question...</Text>
+          </View>
+        );
+      }
       return renderQuestionScreen();
     case 'completed':
       return renderCompletedScreen();
