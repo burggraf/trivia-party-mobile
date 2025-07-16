@@ -332,31 +332,8 @@ export default function HostPartyScreen({ navigation, route }: { navigation: any
         </Card.Content>
       </Card>
 
-      {/* Teams Status */}
-      <Card style={styles.teamsCard}>
-        <Card.Content>
-          <Text variant="titleMedium" style={styles.sectionTitle}>
-            Teams ({teams.length})
-          </Text>
-          
-          {teams.map((team) => (
-            <View key={team.id} style={styles.teamItem}>
-              <View style={styles.teamInfo}>
-                <View style={[styles.colorIndicator, { backgroundColor: team.color }]} />
-                <Text variant="bodyLarge" style={styles.teamName}>
-                  {team.name}
-                </Text>
-              </View>
-              <Text variant="bodyLarge" style={styles.teamScore}>
-                {team.score} pts
-              </Text>
-            </View>
-          ))}
-        </Card.Content>
-      </Card>
-
       {/* Live Leaderboard */}
-      <LiveLeaderboard partyId={partyId} maxTeams={5} compact={true} />
+      <LiveLeaderboard partyId={partyId} maxTeams={5} compact={false} />
 
 
       {/* Current Question Display */}
@@ -520,10 +497,6 @@ const styles = StyleSheet.create({
     color: '#6b7280',
     textAlign: 'center',
   },
-  teamsCard: {
-    marginBottom: 16,
-    elevation: 2,
-  },
   analyticsCard: {
     marginBottom: 16,
     elevation: 2,
@@ -545,31 +518,6 @@ const styles = StyleSheet.create({
   sectionTitle: {
     color: '#1f2937',
     marginBottom: 12,
-  },
-  teamItem: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    paddingVertical: 8,
-    borderBottomWidth: 1,
-    borderBottomColor: '#e5e7eb',
-  },
-  teamInfo: {
-    flexDirection: 'row',
-    alignItems: 'center',
-  },
-  colorIndicator: {
-    width: 16,
-    height: 16,
-    borderRadius: 8,
-    marginRight: 12,
-  },
-  teamName: {
-    color: '#1f2937',
-  },
-  teamScore: {
-    color: '#059669',
-    fontWeight: 'bold',
   },
   questionCard: {
     marginBottom: 16,
