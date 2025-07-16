@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { View, StyleSheet, FlatList, Alert } from 'react-native';
+import { View, StyleSheet, FlatList, Alert, KeyboardAvoidingView, Platform } from 'react-native';
 import { Text, Card, Button, TextInput, FAB, Chip } from 'react-native-paper';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { PartyService } from '../../services/partyService';
@@ -195,7 +195,10 @@ export default function TeamSelectionScreen({ navigation, route }: any) {
   }
 
   return (
-    <View style={[styles.container, { paddingTop: insets.top }]}>
+    <KeyboardAvoidingView 
+      style={[styles.container, { paddingTop: insets.top }]}
+      behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+    >
       <View style={styles.header}>
         <Text variant="headlineSmall" style={styles.title}>
           {existingTeam ? 'Rejoin Your Team' : 'Join a Team'}
@@ -317,7 +320,7 @@ export default function TeamSelectionScreen({ navigation, route }: any) {
         onPress={() => setShowCreateTeam(true)}
         disabled={joining}
       />
-    </View>
+    </KeyboardAvoidingView>
   );
 }
 

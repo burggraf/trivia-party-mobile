@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { View, StyleSheet, ScrollView, Dimensions } from 'react-native';
 import { Text, Card, Button, Chip, SegmentedButtons, DataTable } from 'react-native-paper';
-import { useRoute, useNavigation } from '@react-navigation/native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { PartyService } from '../../services/partyService';
 import { Database } from '../../types/database';
@@ -32,11 +31,9 @@ interface RoundTeamData {
   rank: number;
 }
 
-export default function EnhancedLeaderboardScreen() {
+export default function EnhancedLeaderboardScreen({ navigation, route }: any) {
   const insets = useSafeAreaInsets();
-  const route = useRoute();
-  const navigation = useNavigation();
-  const { partyId } = route.params as { partyId: string };
+  const { partyId } = route.params || {};
 
   const [party, setParty] = useState<Party | null>(null);
   const [rounds, setRounds] = useState<Round[]>([]);

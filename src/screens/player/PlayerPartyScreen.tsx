@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { View, StyleSheet, ScrollView, Alert } from 'react-native';
 import { Text, Card, Button } from 'react-native-paper';
-import { useRoute } from '@react-navigation/native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { PartyService } from '../../services/partyService';
 import { Database } from '../../types/database';
@@ -25,13 +24,9 @@ interface CurrentQuestion {
   question_number: number;
 }
 
-export default function PlayerPartyScreen() {
+export default function PlayerPartyScreen({ route }: any) {
   const insets = useSafeAreaInsets();
-  const route = useRoute();
-  const { partyId, teamId } = route.params as {
-    partyId: string;
-    teamId: string;
-  };
+  const { partyId, teamId } = route.params || {};
 
   const [party, setParty] = useState<Party | null>(null);
   const [team, setTeam] = useState<Team | null>(null);
