@@ -47,6 +47,10 @@ export default function CustomNavigator({
       }
     },
     canGoBack: () => routeHistory.length > 1,
+    setBackHandler: (handler: (() => void) | null) => {
+      navigation._customBackHandler = handler;
+    },
+    _customBackHandler: null as (() => void) | null,
   };
 
   const currentRouteConfig = routes.find(route => route.name === currentRoute);
@@ -64,7 +68,16 @@ export default function CustomNavigator({
         <View style={[styles.header, headerStyle]}>
           <View style={styles.headerContent}>
             {navigation.canGoBack() && (
-              <TouchableOpacity onPress={navigation.goBack} style={styles.backButton}>
+              <TouchableOpacity 
+                onPress={() => {
+                  if (navigation._customBackHandler) {
+                    navigation._customBackHandler();
+                  } else {
+                    navigation.goBack();
+                  }
+                }} 
+                style={styles.backButton}
+              >
                 <Ionicons name="arrow-back" size={24} color={headerTintColor} />
               </TouchableOpacity>
             )}

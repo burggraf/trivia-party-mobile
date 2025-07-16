@@ -57,6 +57,11 @@ export default function PlayerPartyScreen({ navigation, route }: any) {
   useEffect(() => {
     loadGameData();
     
+    // Set up custom back handler to show Leave Game dialog instead of navigating back
+    navigation.setBackHandler(() => {
+      handleLeaveGame();
+    });
+    
     console.log('PlayerPartyScreen: Setting up broadcast subscription for party:', partyId);
     
     // Set up Realtime broadcast subscriptions
@@ -88,6 +93,8 @@ export default function PlayerPartyScreen({ navigation, route }: any) {
       });
 
     return () => {
+      // Clean up custom back handler
+      navigation.setBackHandler(null);
       supabase.removeChannel(partySubscription);
     };
   }, [partyId, teamId]);
