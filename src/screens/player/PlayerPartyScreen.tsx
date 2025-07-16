@@ -53,6 +53,8 @@ export default function PlayerPartyScreen({ navigation, route }: any) {
   const [subscriptionStatus, setSubscriptionStatus] = useState<string>('connecting');
   const [showingResults, setShowingResults] = useState(false);
   const [correctAnswer, setCorrectAnswer] = useState<'A' | 'B' | 'C' | 'D' | null>(null);
+  const [roundIntroData, setRoundIntroData] = useState<{roundNumber: number; roundName: string; questionCount: number} | null>(null);
+  const [roundCompleteData, setRoundCompleteData] = useState<{roundNumber: number; roundName: string} | null>(null);
 
   useEffect(() => {
     loadGameData();
@@ -71,6 +73,10 @@ export default function PlayerPartyScreen({ navigation, route }: any) {
         console.log('PlayerPartyScreen: Game started broadcast received:', payload);
         handleGameStarted();
       })
+      .on('broadcast', { event: 'round_intro' }, (payload) => {
+        console.log('PlayerPartyScreen: Round intro broadcast received:', payload);
+        handleRoundIntro(payload.payload);
+      })
       .on('broadcast', { event: 'question_data' }, (payload) => {
         console.log('PlayerPartyScreen: Question data broadcast received:', payload);
         handleQuestionDataBroadcast(payload.payload);
@@ -78,6 +84,14 @@ export default function PlayerPartyScreen({ navigation, route }: any) {
       .on('broadcast', { event: 'question_results' }, (payload) => {
         console.log('PlayerPartyScreen: Question results broadcast received:', payload);
         handleQuestionResults(payload.payload);
+      })
+      .on('broadcast', { event: 'round_complete' }, (payload) => {
+        console.log('PlayerPartyScreen: Round complete broadcast received:', payload);
+        handleRoundComplete(payload.payload);
+      })
+      .on('broadcast', { event: 'game_complete' }, (payload) => {
+        console.log('PlayerPartyScreen: Game complete broadcast received:', payload);
+        handleGameComplete();
       })
       .on('broadcast', { event: 'game_ended' }, (payload) => {
         console.log('PlayerPartyScreen: Game ended broadcast received:', payload);
@@ -215,6 +229,46 @@ export default function PlayerPartyScreen({ navigation, route }: any) {
     }
   };
 
+  const handleRoundIntro = (roundData: {roundNumber: number; roundName: string; questionCount: number}) => {
+    console.log('PlayerPartyScreen: Showing round intro:', roundData);
+    setRoundIntroData(roundData);
+    setCurrentQuestion(null);
+    setShowingResults(false);
+    setCorrectAnswer(null);
+    setSelectedAnswer(null);
+    setHasAnswered(false);
+    setRoundCompleteData(null);
+  };
+
+  const handleRoundComplete = (roundData: {roundNumber: number; roundName: string}) => {
+    console.log('PlayerPartyScreen: Showing round complete:', roundData);
+    setRoundCompleteData(roundData);
+    setCurrentQuestion(null);
+    setShowingResults(false);
+    setCorrectAnswer(null);
+    setSelectedAnswer(null);
+    setHasAnswered(false);
+    setRoundIntroData(null);
+    
+    // Load updated leaderboard
+    loadLeaderboard();
+  };
+
+  const handleGameComplete = () => {
+    console.log('PlayerPartyScreen: Game complete!');
+    setGameStatus('completed');
+    setCurrentQuestion(null);
+    setShowingResults(false);
+    setCorrectAnswer(null);
+    setSelectedAnswer(null);
+    setHasAnswered(false);
+    setRoundIntroData(null);
+    setRoundCompleteData(null);
+    
+    // Load final leaderboard
+    loadLeaderboard();
+  };
+
   const handleQuestionDataBroadcast = (questionData: any) => {
     console.log('PlayerPartyScreen: Setting question data from broadcast:', questionData);
     
@@ -231,6 +285,9 @@ export default function PlayerPartyScreen({ navigation, route }: any) {
     setHasAnswered(false);
     setShowingResults(false);
     setCorrectAnswer(null);
+    // Clear round intro/complete screens
+    setRoundIntroData(null);
+    setRoundCompleteData(null);
     
     console.log('PlayerPartyScreen: Question set successfully:', {
       party_question_id: questionData.party_question_id,
@@ -416,6 +473,97 @@ export default function PlayerPartyScreen({ navigation, route }: any) {
       ]
     );
   };
+
+  const renderRoundIntroScreen = () => (
+    <View style={[styles.centerContainer, { paddingTop: insets.top }]}>
+      <Card style={styles.statusCard}>
+        <Card.Content>
+          <Text variant="headlineSmall" style={styles.statusTitle}>
+            Round {roundIntroData?.roundNumber}
+          </Text>
+          <Text variant="bodyLarge" style={styles.statusSubtitle}>
+            {roundIntroData?.roundName}
+          </Text>
+          <Text variant="bodyMedium" style={styles.statusDescription}>
+            {roundIntroData?.questionCount} questions coming up!
+          </Text>
+          <Text variant="bodySmall" style={styles.statusHint}>
+            Get ready - the host will start the questions shortly!
+          </Text>
+        </Card.Content>
+      </Card>
+
+      <Card style={styles.teamInfoCard}>
+        <Card.Content>
+          <Text variant="titleMedium" style={styles.teamTitle}>
+            Team Information
+          </Text>
+          <View style={styles.teamInfo}>
+            <View
+              style={[styles.colorIndicator, { backgroundColor: team?.color }]}
+            />
+            <Text variant="bodyLarge" style={styles.teamName}>
+              {team?.name}
+            </Text>
+          </View>
+          <Text variant="bodyMedium" style={styles.teamScore}>
+            Current Score: {team?.score || 0} points
+          </Text>
+        </Card.Content>
+      </Card>
+    </View>
+  );
+
+  const renderRoundCompleteScreen = () => (
+    <ScrollView style={[styles.container, { paddingTop: insets.top }]} contentContainerStyle={styles.content}>
+      <Card style={styles.statusCard}>
+        <Card.Content>
+          <Text variant="headlineSmall" style={styles.statusTitle}>
+            Round {roundCompleteData?.roundNumber} Complete!
+          </Text>
+          <Text variant="bodyLarge" style={styles.statusSubtitle}>
+            {roundCompleteData?.roundName}
+          </Text>
+          <Text variant="bodyMedium" style={styles.statusDescription}>
+            Great job! Check out the current standings below.
+          </Text>
+          <Text variant="bodySmall" style={styles.statusHint}>
+            ⚡ The host will start the next round when ready!
+          </Text>
+        </Card.Content>
+      </Card>
+
+      <Card style={styles.leaderboardCard}>
+        <Card.Content>
+          <Text variant="titleLarge" style={styles.leaderboardTitle}>
+            Current Leaderboard
+          </Text>
+
+          {leaderboard.map((team, index) => (
+            <View key={team.id} style={styles.leaderboardItem}>
+              <Text variant="titleMedium" style={styles.rank}>
+                #{index + 1}
+              </Text>
+              <View style={styles.teamLeaderboardInfo}>
+                <View
+                  style={[
+                    styles.colorIndicator,
+                    { backgroundColor: team.color },
+                  ]}
+                />
+                <Text variant="bodyLarge" style={styles.leaderboardTeamName}>
+                  {team.name}
+                </Text>
+              </View>
+              <Text variant="titleMedium" style={styles.leaderboardScore}>
+                {team.score}
+              </Text>
+            </View>
+          ))}
+        </Card.Content>
+      </Card>
+    </ScrollView>
+  );
 
   const renderWaitingScreen = () => (
     <View style={[styles.centerContainer, { paddingTop: insets.top }]}>
@@ -631,6 +779,16 @@ export default function PlayerPartyScreen({ navigation, route }: any) {
         <Text variant="bodyLarge">Game not found</Text>
       </View>
     );
+  }
+
+  // Show round intro screen if we have round intro data
+  if (roundIntroData) {
+    return renderRoundIntroScreen();
+  }
+
+  // Show round complete screen if we have round complete data
+  if (roundCompleteData) {
+    return renderRoundCompleteScreen();
   }
 
   switch (gameStatus) {

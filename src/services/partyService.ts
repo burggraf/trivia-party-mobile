@@ -565,6 +565,96 @@ export class PartyService {
     }
   }
 
+  static async broadcastRoundIntro(partyId: string, roundData: { roundNumber: number; roundName: string; questionCount: number }) {
+    console.log('PartyService: Broadcasting round intro for party:', partyId);
+    try {
+      const channelName = `party-${partyId}`;
+      const channel = supabase.channel(channelName);
+      
+      // Subscribe to the channel first to ensure it exists
+      await new Promise((resolve) => {
+        channel.subscribe((status) => {
+          console.log('PartyService: Round intro broadcast channel status:', status);
+          if (status === 'SUBSCRIBED') {
+            resolve(true);
+          }
+        });
+      });
+
+      const result = await channel.send({
+        type: 'broadcast',
+        event: 'round_intro',
+        payload: roundData
+      });
+      console.log('PartyService: Round intro broadcast result:', result);
+      
+      // Clean up channel
+      supabase.removeChannel(channel);
+    } catch (error) {
+      console.error('PartyService: Error broadcasting round intro:', error);
+    }
+  }
+
+  static async broadcastRoundComplete(partyId: string, roundData: { roundNumber: number; roundName: string }) {
+    console.log('PartyService: Broadcasting round complete for party:', partyId);
+    try {
+      const channelName = `party-${partyId}`;
+      const channel = supabase.channel(channelName);
+      
+      // Subscribe to the channel first to ensure it exists
+      await new Promise((resolve) => {
+        channel.subscribe((status) => {
+          console.log('PartyService: Round complete broadcast channel status:', status);
+          if (status === 'SUBSCRIBED') {
+            resolve(true);
+          }
+        });
+      });
+
+      const result = await channel.send({
+        type: 'broadcast',
+        event: 'round_complete',
+        payload: roundData
+      });
+      console.log('PartyService: Round complete broadcast result:', result);
+      
+      // Clean up channel
+      supabase.removeChannel(channel);
+    } catch (error) {
+      console.error('PartyService: Error broadcasting round complete:', error);
+    }
+  }
+
+  static async broadcastGameComplete(partyId: string) {
+    console.log('PartyService: Broadcasting game complete for party:', partyId);
+    try {
+      const channelName = `party-${partyId}`;
+      const channel = supabase.channel(channelName);
+      
+      // Subscribe to the channel first to ensure it exists
+      await new Promise((resolve) => {
+        channel.subscribe((status) => {
+          console.log('PartyService: Game complete broadcast channel status:', status);
+          if (status === 'SUBSCRIBED') {
+            resolve(true);
+          }
+        });
+      });
+
+      const result = await channel.send({
+        type: 'broadcast',
+        event: 'game_complete',
+        payload: { partyId }
+      });
+      console.log('PartyService: Game complete broadcast result:', result);
+      
+      // Clean up channel
+      supabase.removeChannel(channel);
+    } catch (error) {
+      console.error('PartyService: Error broadcasting game complete:', error);
+    }
+  }
+
   static async broadcastGameEnded(partyId: string) {
     console.log('PartyService: Broadcasting game ended for party:', partyId);
     try {

@@ -187,10 +187,29 @@ export default function HostPartyScreen({ navigation, route, onGameProgression }
     if (isLastQuestion && isLastRound) {
       // Game complete
       console.log('🚨 RESULTS TO NEXT: Game complete!');
+      
+      // Broadcast game complete to players
+      try {
+        await PartyService.broadcastGameComplete(partyId);
+      } catch (error) {
+        console.error('Error broadcasting game complete:', error);
+      }
+      
       setGameState(prev => ({ ...prev, gamePhase: GamePhase.GAME_COMPLETE }));
     } else if (isLastQuestion) {
       // Round complete
       console.log('🚨 RESULTS TO NEXT: Round complete!');
+      
+      // Broadcast round complete to players
+      try {
+        await PartyService.broadcastRoundComplete(partyId, {
+          roundNumber: currentGameState.currentRound,
+          roundName: currentGameState.currentRoundData!.name
+        });
+      } catch (error) {
+        console.error('Error broadcasting round complete:', error);
+      }
+      
       setGameState(prev => ({ ...prev, gamePhase: GamePhase.ROUND_COMPLETE }));
     } else {
       // Next question
@@ -221,6 +240,17 @@ export default function HostPartyScreen({ navigation, route, onGameProgression }
     const nextRound = rounds[nextRoundNumber - 1];
     
     if (nextRound) {
+      // Broadcast next round intro to players
+      try {
+        await PartyService.broadcastRoundIntro(partyId, {
+          roundNumber: nextRoundNumber,
+          roundName: nextRound.name,
+          questionCount: nextRound.question_count
+        });
+      } catch (error) {
+        console.error('Error broadcasting round intro:', error);
+      }
+      
       // Start next round
       setGameState({
         currentRound: nextRoundNumber,
@@ -235,6 +265,12 @@ export default function HostPartyScreen({ navigation, route, onGameProgression }
       });
     } else {
       // No more rounds, game complete
+      try {
+        await PartyService.broadcastGameComplete(partyId);
+      } catch (error) {
+        console.error('Error broadcasting game complete:', error);
+      }
+      
       setGameState(prev => ({ ...prev, gamePhase: GamePhase.GAME_COMPLETE }));
     }
   };
@@ -329,6 +365,17 @@ export default function HostPartyScreen({ navigation, route, onGameProgression }
           
           // Update game state in database
           await PartyService.updateGameState(partyId, firstRound.id, 1);
+          
+          // Broadcast initial round intro to players
+          try {
+            await PartyService.broadcastRoundIntro(partyId, {
+              roundNumber: 1,
+              roundName: firstRound.name,
+              questionCount: firstRound.question_count
+            });
+          } catch (error) {
+            console.error('Error broadcasting initial round intro:', error);
+          }
           
           console.log('HostPartyScreen: Game initialized with round intro phase');
           
