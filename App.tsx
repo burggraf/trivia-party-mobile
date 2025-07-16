@@ -2,6 +2,8 @@ import React, { useEffect } from 'react';
 import { StatusBar } from 'expo-status-bar';
 import { PaperProvider } from 'react-native-paper';
 import * as Updates from 'expo-updates';
+import * as Linking from 'expo-linking';
+import { Alert } from 'react-native';
 import AppNavigator from './src/navigation/AppNavigator';
 import { useAuthStore } from './src/stores/authStore';
 

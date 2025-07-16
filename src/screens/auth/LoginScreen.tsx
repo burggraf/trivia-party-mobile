@@ -8,7 +8,8 @@ export default function LoginScreen({ navigation }: any) {
   const insets = useSafeAreaInsets();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const { signIn, loading } = useAuthStore();
+  const [resetLoading, setResetLoading] = useState(false);
+  const { signIn, resetPassword, loading } = useAuthStore();
 
   const handleLogin = async () => {
     if (!email || !password) {
@@ -20,6 +21,31 @@ export default function LoginScreen({ navigation }: any) {
       await signIn(email, password);
     } catch (error: any) {
       Alert.alert('Error', error.message || 'Failed to sign in');
+    }
+  };
+
+  const handleForgotPassword = async () => {
+    if (!email.trim()) {
+      Alert.alert(
+        'Email Required', 
+        'Please enter your email address first, then tap "Forgot Password" again.',
+        [{ text: 'OK' }]
+      );
+      return;
+    }
+
+    try {
+      setResetLoading(true);
+      await resetPassword(email.trim());
+      Alert.alert(
+        'Reset Email Sent',
+        'Check your email for password reset instructions. The email may take a few minutes to arrive.',
+        [{ text: 'OK' }]
+      );
+    } catch (error: any) {
+      Alert.alert('Error', error.message || 'Failed to send reset email');
+    } finally {
+      setResetLoading(false);
     }
   };
 
@@ -66,9 +92,19 @@ export default function LoginScreen({ navigation }: any) {
               onPress={handleLogin}
               style={styles.button}
               loading={loading}
-              disabled={loading}
+              disabled={loading || resetLoading}
             >
               Sign In
+            </Button>
+
+            <Button
+              mode="text"
+              onPress={handleForgotPassword}
+              style={styles.forgotPasswordButton}
+              loading={resetLoading}
+              disabled={loading || resetLoading}
+            >
+              Forgot Password?
             </Button>
 
             <Button
@@ -115,6 +151,9 @@ const styles = StyleSheet.create({
   button: {
     marginTop: 16,
     paddingVertical: 8,
+  },
+  forgotPasswordButton: {
+    marginTop: 4,
   },
   linkButton: {
     marginTop: 8,

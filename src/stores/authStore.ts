@@ -14,6 +14,7 @@ interface AuthState {
     displayName: string
   ) => Promise<void>;
   signOut: () => Promise<void>;
+  resetPassword: (email: string) => Promise<void>;
   initialize: () => Promise<void>;
 }
 
@@ -140,6 +141,32 @@ export const useAuthStore = create<AuthState>((set) => ({
       if (error) throw error;
     } catch (error) {
       console.error('Error signing out:', error);
+      throw error;
+    } finally {
+      set({ loading: false });
+    }
+  },
+
+  resetPassword: async (email: string) => {
+    try {
+      set({ loading: true });
+
+      const isPlaceholder =
+        !process.env.EXPO_PUBLIC_SUPABASE_URL ||
+        process.env.EXPO_PUBLIC_SUPABASE_URL.includes('placeholder');
+
+      if (isPlaceholder) {
+        throw new Error(
+          'Supabase not configured. Please set up your Supabase project first.'
+        );
+      }
+
+      const { error } = await supabase.auth.resetPasswordForEmail(email, {
+        redirectTo: 'trivia-party-mobile://reset-password',
+      });
+      if (error) throw error;
+    } catch (error) {
+      console.error('Error sending reset password email:', error);
       throw error;
     } finally {
       set({ loading: false });
