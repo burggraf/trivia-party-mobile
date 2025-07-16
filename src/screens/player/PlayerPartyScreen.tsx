@@ -134,14 +134,24 @@ export default function PlayerPartyScreen({ navigation, route }: any) {
         // Load current active question when joining game in progress
         try {
           console.log('PlayerPartyScreen: Loading current active question for game in progress');
-          const gameState = await PartyService.getCurrentGameState(partyId);
+          
+          // Add timeout to prevent hanging
+          const timeoutPromise = new Promise((_, reject) => {
+            setTimeout(() => reject(new Error('Question loading timeout')), 5000);
+          });
+          
+          const gameStatePromise = PartyService.getCurrentGameState(partyId);
+          const gameState = await Promise.race([gameStatePromise, timeoutPromise]);
           console.log('PlayerPartyScreen: Current game state:', gameState);
           
           if (gameState?.current_round_id && gameState?.current_question_order) {
-            const currentQuestion = await PartyService.getCurrentQuestion(
+            console.log('PlayerPartyScreen: Found valid game state, loading question...');
+            const questionPromise = PartyService.getCurrentQuestion(
               gameState.current_round_id, 
               gameState.current_question_order
             );
+            const currentQuestion = await Promise.race([questionPromise, timeoutPromise]);
+            console.log('PlayerPartyScreen: getCurrentQuestion result:', currentQuestion);
             
             if (currentQuestion && currentQuestion.questions) {
               console.log('PlayerPartyScreen: Found current active question:', currentQuestion.questions.question);
@@ -168,15 +178,19 @@ export default function PlayerPartyScreen({ navigation, route }: any) {
               
               setCurrentQuestion(questionData);
               setCurrentQuestionId(currentQuestion.id);
-              console.log('PlayerPartyScreen: Set current question for mid-game join');
+              console.log('PlayerPartyScreen: Successfully set current question for mid-game join');
             } else {
-              console.log('PlayerPartyScreen: No current active question found');
+              console.log('PlayerPartyScreen: No current question data found, trying fallback method');
+              await tryFallbackQuestionLoad();
             }
           } else {
-            console.log('PlayerPartyScreen: No active game state found');
+            console.log('PlayerPartyScreen: No active game state found, trying fallback method');
+            await tryFallbackQuestionLoad();
           }
         } catch (error) {
           console.error('PlayerPartyScreen: Error loading current active question:', error);
+          console.log('PlayerPartyScreen: Trying fallback method due to error');
+          await tryFallbackQuestionLoad();
         }
       } else if (currentParty?.status === 'completed') {
         setGameStatus('completed');
@@ -337,6 +351,51 @@ export default function PlayerPartyScreen({ navigation, route }: any) {
       setSelectedAnswer(null);
     } finally {
       setSubmitting(false);
+    }
+  };
+
+  const tryFallbackQuestionLoad = async () => {
+    try {
+      console.log('PlayerPartyScreen: Trying fallback method to find current question...');
+      
+      // Use findNextUnansweredQuestion as fallback
+      const nextUnanswered = await PartyService.findNextUnansweredQuestion(partyId);
+      console.log('PlayerPartyScreen: Fallback found:', nextUnanswered);
+      
+      if (nextUnanswered && nextUnanswered.question) {
+        const questionData = nextUnanswered.question;
+        
+        // Shuffle the answers for display
+        const shuffledData = shuffleQuestionAnswers({
+          question: questionData.questions.question,
+          a: questionData.questions.a,
+          b: questionData.questions.b,
+          c: questionData.questions.c,
+          d: questionData.questions.d,
+        });
+        
+        // Convert to the format expected by the player screen
+        const formattedQuestionData = {
+          party_question_id: questionData.id,
+          question: shuffledData.originalQuestion,
+          shuffled_answers: shuffledData.shuffledAnswers,
+          category: questionData.questions.category,
+          difficulty: questionData.questions.difficulty,
+          round_name: nextUnanswered.round.name,
+          question_number: questionData.question_order
+        };
+        
+        setCurrentQuestion(formattedQuestionData);
+        setCurrentQuestionId(questionData.id);
+        console.log('PlayerPartyScreen: Successfully loaded question via fallback method');
+      } else {
+        console.log('PlayerPartyScreen: No unanswered questions found, switching to waiting state');
+        setGameStatus('waiting');
+      }
+    } catch (fallbackError) {
+      console.error('PlayerPartyScreen: Fallback method also failed:', fallbackError);
+      console.log('PlayerPartyScreen: All methods failed, switching to waiting state');
+      setGameStatus('waiting');
     }
   };
 
